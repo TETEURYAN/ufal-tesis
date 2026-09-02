@@ -75,70 +75,60 @@ O termo GraphRAG designa, em sentido amplo, a classe de abordagens de geração 
 O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustradas na Figura~\ref{fig:graphrag-pipeline}. O corpus é primeiro segmentado em unidades de texto de tamanho controlado. Cada unidade é submetida a um LLM que extrai as entidades presentes, com nome, tipo e uma breve descrição, e as relações entre elas, também descritas em linguagem natural. As menções repetidas de uma mesma entidade ao longo das unidades são deduplicadas e mescladas, e suas descrições são agregadas, o que consolida um grafo único em que nós e arestas acumulam a evidência textual de origem. Sobre esse grafo executa-se um algoritmo de detecção de comunidades, que particiona os nós em grupos densamente conectados. Para cada comunidade, um LLM gera um resumo em linguagem natural a partir das entidades, relações e descrições que ela contém. O produto final da indexação é o conjunto formado pelo grafo, pelas comunidades em seus vários níveis e pelos respectivos resumos, além das unidades de texto originais, tudo disponível para a etapa de consulta.
 
 \begin{figure}[htb]
-\centering
-\begin{tikzpicture}[
-  node distance=6mm and 7mm,
-  box/.style={draw, rounded corners, align=center, minimum height=10mm, text width=24mm, font=\footnotesize, fill=gray!8},
-  llm/.style={box, fill=gray!22},
-  arr/.style={-{Latex[length=2mm]}, thick}
-]
-\node[box] (corpus) {Corpus de prontuários};
-\node[box, right=of corpus] (chunks) {Unidades de texto};
-\node[llm, right=of chunks] (extract) {Extração de entidades e relações (LLM)};
-\node[box, below=of extract] (merge) {Deduplicação e \textit{merge}};
-\node[box, left=of merge] (graph) {Grafo de conhecimento};
-\node[box, left=of graph] (comm) {Detecção de comunidades (Leiden)};
-\node[llm, below=of comm] (summ) {Resumos de comunidade (LLM)};
-\node[box, right=of summ] (index) {Índice: grafo, comunidades e resumos};
-\draw[arr] (corpus) -- (chunks);
-\draw[arr] (chunks) -- (extract);
-\draw[arr] (extract) -- (merge);
-\draw[arr] (merge) -- (graph);
-\draw[arr] (graph) -- (comm);
-\draw[arr] (comm) -- (summ);
-\draw[arr] (summ) -- (index);
-\end{tikzpicture}
-\caption{Pipeline de indexação do Microsoft GraphRAG, do corpus bruto ao índice consultável. Adaptado de \citet{edge2024}.}
-\label{fig:graphrag-pipeline}
+    \centering
+    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,right,node distance=1.7cm,semithick,
+        index/.style={
+            rectangle, draw=black, thick, fill=blue!10,
+            text width=3.6cm, align=center, rounded corners, minimum height=2em
+        },
+        query/.style={
+            rectangle, draw=black, thick, fill=ForestGreen!15,
+            text width=3.6cm, align=center, rounded corners, minimum height=2em
+        }]
+      \node[index] (doc) {Documentos-fonte};
+
+      \node[index] (chunks) [below of=doc] {Blocos de texto};
+      \path (doc) edge node[text width=2.2cm] {\small extração e segmentação do texto} (chunks);
+
+      \node[index] (er) [below of=chunks] {Entidades e relações};
+      \path (chunks) edge node[text width=2.5cm] {\small sumarização adaptada ao domínio} (er);
+
+      \node[index] (kg) [below of=er] {Grafo de conhecimento};
+      \path (er) edge node[text width=2.5cm] {\small sumarização adaptada ao domínio} (kg);
+
+      \node[index] (comm) [right=3cm of kg] {Comunidades do grafo};
+      \path (kg) edge node[text width=2cm,auto,align=center] {\small detecção de comunidades} (comm);
+
+      \node[index] (csum) [above of=comm] {Resumos de comunidade};
+      \path (comm) edge node[text width=2.5cm] {\small sumarização adaptada ao domínio} (csum);
+
+      \node[query] (cans) [above of=csum] {Respostas por comunidade};
+      \path (csum) edge node[text width=2.5cm] {\small sumarização orientada à consulta} (cans);
+
+      \node[query] (global) [above of=cans] {Resposta global};
+      \path (cans) edge node[text width=2.5cm] {\small sumarização orientada à consulta} (global);
+
+      \node[index, font=\itshape] (itime) [below of=kg] {Tempo de indexação};
+      \node[query, font=\itshape] (qtime) [below of=comm] {Tempo de consulta};
+      \node (stage) [right=0.3cm of itime, font=\bfseries] {Etapa do pipeline};
+    \end{tikzpicture}
+    \caption{Pipeline do GraphRAG a partir de um índice de grafo derivado por LLM do texto dos documentos-fonte. O índice abrange nós (entidades) e arestas (relações), além de covariáveis opcionais, detectados, extraídos e resumidos por \textit{prompts} adaptados ao domínio dos dados. A detecção de comunidades (por exemplo, Leiden, \citealt{traag2019}) particiona o índice em grupos de elementos que o LLM resume em paralelo, tanto no tempo de indexação quanto no de consulta. A ``resposta global'' a uma consulta resulta de uma rodada final de sumarização orientada à consulta sobre todos os resumos de comunidade que reportam relevância para ela. Figura extraída de \citet{edge2024} e traduzida pelo autor para fins didáticos.}
+    \label{fig:graphrag-pipeline}
 \end{figure}
 
 A detecção de comunidades no GraphRAG é feita pelo algoritmo de Leiden, proposto por \citet{traag2019} como aprimoramento do método de Louvain. Ambos buscam uma partição do grafo que maximize a modularidade, medida que compara a densidade de arestas dentro das comunidades com a que se esperaria em um grafo aleatório de mesmo grau. O método de Louvain, embora rápido e amplamente usado, pode produzir comunidades internamente mal conectadas, e até desconexas, situação em que um grupo rotulado como comunidade não forma, de fato, um subgrafo coeso. O Leiden acrescenta uma etapa de refinamento que garante que toda comunidade retornada seja internamente conectada, além de convergir para partições de melhor qualidade em menos iterações. O algoritmo é recursivo, no sentido de que, após encontrar uma partição, agrega cada comunidade em um supernó e repete o procedimento sobre o grafo agregado, o que gera uma hierarquia de partições em vez de uma partição única.
 
-Essa recursão produz os níveis de comunidade (\textit{community levels}), níveis de granularidade da partição, ilustrados na Figura~\ref{fig:leiden-hierarquia}. No nível mais agregado, identificado como L0, o grafo é dividido em poucas comunidades amplas, que correspondem a grandes temas do corpus. A cada nível subsequente, as comunidades do nível anterior são subdivididas, de modo que os níveis mais altos contêm muitas comunidades pequenas e tematicamente específicas. Os resumos acompanham essa gradação, pois níveis baixos geram resumos longos e abstratos, que sintetizam grandes porções do corpus, ao passo que níveis altos geram resumos curtos e concretos, próximos do texto de origem. \citet{edge2024} avaliaram condições de nível de comunidade denominadas C0 a C3 e observaram um compromisso, em que os níveis intermediários tendem a favorecer o embasamento factual das respostas, enquanto os níveis mais agregados favorecem a abrangência ao custo de especificidade. Para uma tarefa de classificação diagnóstica, em que a resposta é uma entre poucas categorias e depende de detalhes concretos do prontuário, a especificidade do contexto é prioritária, o que sugere preferência por níveis mais granulares.
+Essa recursão produz os níveis de comunidade (\textit{community levels}), níveis de granularidade da partição, exemplificados na Figura~\ref{fig:leiden-hierarquia}, que contrasta as comunidades detectadas em dois níveis sobre um conjunto de dados de exemplo. No nível mais agregado, identificado como L0, o grafo é dividido em poucas comunidades amplas, que correspondem a grandes temas do corpus. A cada nível subsequente, as comunidades do nível anterior são subdivididas, de modo que os níveis mais altos contêm muitas comunidades pequenas e tematicamente específicas. Os resumos acompanham essa gradação, pois níveis baixos geram resumos longos e abstratos, que sintetizam grandes porções do corpus, ao passo que níveis altos geram resumos curtos e concretos, próximos do texto de origem. \citet{edge2024} avaliaram condições de nível de comunidade denominadas C0 a C3 e observaram um compromisso, em que os níveis intermediários tendem a favorecer o embasamento factual das respostas, enquanto os níveis mais agregados favorecem a abrangência ao custo de especificidade. Para uma tarefa de classificação diagnóstica, em que a resposta é uma entre poucas categorias e depende de detalhes concretos do prontuário, a especificidade do contexto é prioritária, o que sugere preferência por níveis mais granulares.
 
 \begin{figure}[htb]
-\centering
-\begin{tikzpicture}[
-  lvl/.style={font=\footnotesize\itshape},
-  ann/.style={font=\scriptsize, align=center, text width=34mm},
-  c0/.style={draw, circle, minimum size=8mm, fill=gray!25, font=\footnotesize},
-  c1/.style={draw, circle, minimum size=6mm, fill=gray!15, font=\scriptsize},
-  c2/.style={draw, circle, minimum size=4.5mm, fill=gray!8},
-  edge/.style={gray}
-]
-\node[c0] (a) at (0,3) {};
-\node[c0] (b) at (4,3) {};
-\node[lvl] at (-2,3) {L0};
-\node[c1] (a1) at (-0.9,1.6) {};
-\node[c1] (a2) at (0.9,1.6) {};
-\node[c1] (b1) at (3.1,1.6) {};
-\node[c1] (b2) at (4.9,1.6) {};
-\node[lvl] at (-2,1.6) {L1};
-\foreach \x in {-1.5,-0.7,0.3,1.1,1.9} \node[c2] at (\x,0.2) {};
-\foreach \x in {2.5,3.3,4.3,5.1,5.9} \node[c2] at (\x,0.2) {};
-\node[lvl] at (-2,0.2) {L2};
-\node[lvl] at (-2,-0.9) {$\vdots$};
-\node[ann] at (7.7,3) {poucas comunidades amplas; resumos longos e abstratos};
-\node[ann] at (7.7,0.2) {muitas comunidades específicas; resumos curtos e concretos};
-\draw[edge] (a) -- (a1); \draw[edge] (a) -- (a2);
-\draw[edge] (b) -- (b1); \draw[edge] (b) -- (b2);
-\draw[edge] (a1) -- (-1.5,0.4); \draw[edge] (a1) -- (-0.7,0.4);
-\draw[edge] (a2) -- (0.3,0.4); \draw[edge] (a2) -- (1.1,0.4); \draw[edge] (a2) -- (1.9,0.4);
-\draw[edge] (b1) -- (2.5,0.4); \draw[edge] (b1) -- (3.3,0.4);
-\draw[edge] (b2) -- (4.3,0.4); \draw[edge] (b2) -- (5.1,0.4); \draw[edge] (b2) -- (5.9,0.4);
-\end{tikzpicture}
-\caption{Hierarquia de comunidades produzida pela aplicação recursiva do algoritmo de Leiden. Do nível mais agregado (L0) aos mais granulares, cada comunidade é subdividida e os resumos correspondentes tornam-se mais curtos e específicos.}
-\label{fig:leiden-hierarquia}
+    \centering
+    \begin{tabular}{cc}
+        \includegraphics[width=0.47\textwidth]{Cap02/figuras/Level0Multihop.jpg} &
+        \includegraphics[width=0.47\textwidth]{Cap02/figuras/Level1Multihop.jpg} \\
+        (a) Comunidades raiz no nível 0 & (b) Subcomunidades no nível 1
+    \end{tabular}
+    \caption{Comunidades do grafo detectadas pelo algoritmo de Leiden \citep{traag2019} sobre um conjunto de dados de exemplo, tal como indexado. Os círculos representam nós de entidade, com tamanho proporcional ao grau, e o leiaute foi obtido com os algoritmos OpenORD e Force Atlas~2. As cores identificam comunidades de entidades em dois níveis do agrupamento hierárquico: (a) nível 0, correspondente à partição de modularidade máxima, e (b) nível 1, que revela a estrutura interna dessas comunidades de nível raiz. Níveis mais agregados produzem menos comunidades e resumos mais longos e abstratos; níveis mais granulares produzem muitas comunidades e resumos mais curtos e específicos. Figura extraída de \citet{edge2024}; legenda traduzida e condensada pelo autor para fins didáticos.}
+    \label{fig:leiden-hierarquia}
 \end{figure}
 
 Na etapa de consulta, o GraphRAG oferece modos de busca distintos, que exploram o índice de maneiras diferentes e estão esquematizados na Figura~\ref{fig:modos-busca}. O modo \textit{basic} recupera diretamente as unidades de texto mais semelhantes à consulta, por similaridade vetorial, sem utilizar a estrutura do grafo, e equivale a um RAG convencional sobre o mesmo corpus. O modo \textit{local} parte da consulta para identificar as entidades mais relevantes no grafo e monta o contexto com essas entidades, sua vizinhança imediata, as relações que as conectam e as unidades de texto associadas, sendo adequado a perguntas centradas em entidades específicas. O modo \textit{global} destina-se a perguntas de sentido global e opera em \textit{map-reduce} sobre os resumos de comunidade de um dado nível, de modo que, na fase de \textit{map}, cada resumo é processado isoladamente para gerar respostas parciais com pontuação de utilidade e, na fase de \textit{reduce}, as respostas parciais mais úteis são combinadas em uma resposta final. O modo \textit{drift} combina as duas orientações em um processo iterativo, que inicia com uma consulta ampla aos resumos de comunidade e, a cada iteração, gera novas subperguntas e as refina com buscas locais, ampliando progressivamente o contexto. O modo \textit{drift} tende a produzir as respostas mais completas, ao custo de um número de chamadas ao LLM substancialmente maior que o dos demais modos.

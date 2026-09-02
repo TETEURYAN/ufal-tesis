@@ -76,41 +76,40 @@ O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustra
 
 \begin{figure}[htb]
     \centering
-    \begin{tikzpicture}[->,>=stealth',shorten >=1pt,right,node distance=1.7cm,semithick,
+    \begin{tikzpicture}[
+        >=stealth', shorten >=1pt, semithick, node distance=3cm,
         index/.style={
             rectangle, draw=black, thick, fill=blue!10,
-            text width=3.6cm, align=center, rounded corners, minimum height=2em
+            text width=3.2cm, align=center, rounded corners, minimum height=2.4em
         },
         query/.style={
             rectangle, draw=black, thick, fill=ForestGreen!15,
-            text width=3.6cm, align=center, rounded corners, minimum height=2em
-        }]
+            text width=3.2cm, align=center, rounded corners, minimum height=2.4em
+        },
+        elab/.style={midway, right=5pt, align=left, font=\scriptsize, text width=3cm},
+        hlab/.style={midway, above=4pt, align=center, font=\scriptsize, text width=2.6cm}
+      ]
       \node[index] (doc) {Documentos-fonte};
+      \node[index, below of=doc] (chunks) {Blocos de texto};
+      \node[index, below of=chunks] (er) {Entidades e relações};
+      \node[index, below of=er] (kg) {Grafo de conhecimento};
+      \node[index, right=3.6cm of kg] (comm) {Comunidades do grafo};
+      \node[index, above of=comm] (csum) {Resumos de comunidade};
+      \node[query, above of=csum] (cans) {Respostas por comunidade};
+      \node[query, above of=cans] (global) {Resposta global};
 
-      \node[index] (chunks) [below of=doc] {Blocos de texto};
-      \path (doc) edge node[text width=2.2cm] {\small extração e segmentação do texto} (chunks);
+      \draw[->] (doc)   -- (chunks) node[elab] {extração e segmentação do texto};
+      \draw[->] (chunks) -- (er)    node[elab] {sumarização adaptada ao domínio};
+      \draw[->] (er)    -- (kg)     node[elab] {sumarização adaptada ao domínio};
+      \draw[->] (kg)    -- (comm)   node[hlab] {detecção de comunidades};
+      \draw[->] (comm)  -- (csum)   node[elab] {sumarização adaptada ao domínio};
+      \draw[->] (csum)  -- (cans)   node[elab] {sumarização orientada à consulta};
+      \draw[->] (cans)  -- (global) node[elab] {sumarização orientada à consulta};
 
-      \node[index] (er) [below of=chunks] {Entidades e relações};
-      \path (chunks) edge node[text width=2.5cm] {\small sumarização adaptada ao domínio} (er);
-
-      \node[index] (kg) [below of=er] {Grafo de conhecimento};
-      \path (er) edge node[text width=2.5cm] {\small sumarização adaptada ao domínio} (kg);
-
-      \node[index] (comm) [right=3cm of kg] {Comunidades do grafo};
-      \path (kg) edge node[text width=2cm,auto,align=center] {\small detecção de comunidades} (comm);
-
-      \node[index] (csum) [above of=comm] {Resumos de comunidade};
-      \path (comm) edge node[text width=2.5cm] {\small sumarização adaptada ao domínio} (csum);
-
-      \node[query] (cans) [above of=csum] {Respostas por comunidade};
-      \path (csum) edge node[text width=2.5cm] {\small sumarização orientada à consulta} (cans);
-
-      \node[query] (global) [above of=cans] {Resposta global};
-      \path (cans) edge node[text width=2.5cm] {\small sumarização orientada à consulta} (global);
-
-      \node[index, font=\itshape] (itime) [below of=kg] {Tempo de indexação};
-      \node[query, font=\itshape] (qtime) [below of=comm] {Tempo de consulta};
-      \node (stage) [right=0.3cm of itime, font=\bfseries] {Etapa do pipeline};
+      \node[index, font=\itshape, below=1.5cm of kg]  (itime) {Tempo de indexação};
+      \node[query, font=\itshape, below=1.5cm of comm] (qtime) {Tempo de consulta};
+      \coordinate (legmid) at ($(itime)!0.5!(qtime)$);
+      \node[font=\bfseries] at ([yshift=-1cm]legmid) {Etapa do pipeline};
     \end{tikzpicture}
     \caption{Pipeline do GraphRAG a partir de um índice de grafo derivado por LLM do texto dos documentos-fonte. O índice abrange nós (entidades) e arestas (relações), além de covariáveis opcionais, detectados, extraídos e resumidos por \textit{prompts} adaptados ao domínio dos dados. A detecção de comunidades (por exemplo, Leiden, \citealt{traag2019}) particiona o índice em grupos de elementos que o LLM resume em paralelo, tanto no tempo de indexação quanto no de consulta. A ``resposta global'' a uma consulta resulta de uma rodada final de sumarização orientada à consulta sobre todos os resumos de comunidade que reportam relevância para ela. Figura extraída de \citet{edge2024} e traduzida pelo autor para fins didáticos.}
     \label{fig:graphrag-pipeline}

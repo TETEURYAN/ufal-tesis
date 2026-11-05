@@ -1,0 +1,32 @@
+TY  - JOUR
+TI  - Leveraging Large Language Models for Decision Support in Personalized Oncology
+AU  - Benary, Manuela
+AU  - Wang, Xing David
+AU  - Schmidt, Max
+AU  - Soll, Dominik
+AU  - Hilfenhaus, Georg
+AU  - Nassir, Mani
+AU  - Sigler, Christian
+AU  - Knödler, Maren
+AU  - Keller, Ulrich
+AU  - Beule, Dieter
+AU  - Keilholz, Ulrich
+AU  - Leser, Ulf
+AU  - Rieke, Damian T.
+T2  - JAMA Network Open
+J2  - JAMA Netw Open
+PY  - 2023
+DA  - 2023/11/17
+VL  - 6
+IS  - 11
+SP  - e2343689
+PB  - American Medical Association
+SN  - 2574-3805
+DO  - 10.1001/jamanetworkopen.2023.43689
+UR  - https://pubmed.ncbi.nlm.nih.gov/37976064/
+AN  - 37976064
+AB  - IMPORTANCE: Clinical interpretation of complex biomarkers for precision oncology currently requires manual investigations of previous studies and databases. Conversational large language models (LLMs) might be beneficial as automated tools for assisting clinical decision-making. OBJECTIVE: To assess performance and define their role using 4 recent LLMs as support tools for precision oncology. DESIGN, SETTING, AND PARTICIPANTS: This diagnostic study examined 10 fictional cases of patients with advanced cancer with genetic alterations. Each case was submitted to 4 different LLMs (ChatGPT, Galactica, Perplexity, and BioMedLM) and 1 expert physician to identify personalized treatment options in 2023. Treatment options were masked and presented to a molecular tumor board (MTB), whose members rated the likelihood of a treatment option coming from an LLM on a scale from 0 to 10 (0, extremely unlikely; 10, extremely likely) and decided whether the treatment option was clinically useful. MAIN OUTCOMES AND MEASURES: Number of treatment options, precision, recall, F1 score of LLMs compared with human experts, recognizability, and usefulness of recommendations. RESULTS: For 10 fictional cancer patients (4 with lung cancer, 6 with other; median [IQR] 3.5 [3.0-4.8] molecular alterations per patient), a median (IQR) number of 4.0 (4.0-4.0) compared with 3.0 (3.0-5.0), 7.5 (4.3-9.8), 11.5 (7.8-13.0), and 13.0 (11.3-21.5) treatment options each was identified by the human expert and 4 LLMs, respectively. When considering the expert as a criterion standard, LLM-proposed treatment options reached F1 scores of 0.04, 0.17, 0.14, and 0.19 across all patients combined. Combining treatment options from different LLMs allowed a precision of 0.29 and a recall of 0.29 for an F1 score of 0.29. LLM-generated treatment options were recognized as AI-generated with a median (IQR) 7.5 (5.3-9.0) points in contrast to 2.0 (1.0-3.0) points for manually annotated cases. A crucial reason for identifying AI-generated treatment options was insufficient accompanying evidence. For each patient, at least 1 LLM generated a treatment option that was considered helpful by MTB members. Two unique useful treatment options (including 1 unique treatment strategy) were identified only by LLM. CONCLUSIONS AND RELEVANCE: In this diagnostic study, treatment options of LLMs in precision oncology did not reach the quality and credibility of human experts; however, they generated helpful ideas that might have complemented established procedures. Considering technological progress, LLMs could play an increasingly important role in assisting with screening and selecting relevant biomedical literature to support evidence-based, personalized treatment decisions.
+N1  - PMID: 37976064
+ID  - benary2023
+LA  - en
+ER  - 

@@ -1,0 +1,25 @@
+TY  - CPAPER
+TI  - Prompting Large Language Models for Italian Clinical Reports: A Benchmark Study
+AU  - Lilli, Livia
+AU  - Masciocchi, Carlotta
+AU  - Marchetti, Antonio
+AU  - Arcuri, Giovanni
+AU  - Patarnello, Stefano
+A2  - Demner-Fushman, Dina
+A2  - Ananiadou, Sophia
+A2  - Miwa, Makoto
+A2  - Tsujii, Junichi
+T2  - Proceedings of the 24th Workshop on Biomedical Language Processing
+PY  - 2025
+DA  - 2025/08
+SP  - 190
+EP  - 200
+CY  - Vienna, Austria
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-275-6
+DO  - 10.18653/v1/2025.bionlp-1.17
+UR  - https://aclanthology.org/2025.bionlp-1.17/
+AB  - Large Language Models (LLMs) have significantly impacted medical Natural Language Processing (NLP), enabling automated information extraction from unstructured clinical texts. However, selecting the most suitable approach requires careful evaluation of different model architectures, such as generative LLMs and BERT-based models, along with appropriate adaptation strategies, including prompting techniques, or fine-tuning. Several studies explored different LLM implementations, highlighting their effectiveness in medical domain, including complex diagnostics patterns as for example in rheumatology. However, their application to Italian remains limited, serving as a key example of the broader gap in non-English language research. In this study, we present a task-specific benchmark analysis comparing generative LLMs and BERT-based models, on real-world Italian clinical reports. We evaluated zero-shot prompting, in-context learning (ICL), and fine-tuning across eight diagnostic categories in the rheumatology area. Results show that ICL improves performance over zero-shot-prompting, particularly for Mixtral and Gemma models. Overall, BERT fine-tuning present the highest performance, while ICL outperforms BERT in specific diagnoses, such as renal and systemic, suggesting that prompting can be a potential alternative when labeled data is scarce.
+ID  - lilli2025
+LA  - en
+ER  - 

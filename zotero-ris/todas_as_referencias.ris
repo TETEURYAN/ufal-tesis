@@ -1,0 +1,255 @@
+TY  - JOUR
+TI  - Managing Unstructured Big Data in Healthcare System
+AU  - Kong, Hyoun-Joong
+T2  - Healthcare Informatics Research
+J2  - Healthc Inform Res
+PY  - 2019
+DA  - 2019/01/31
+VL  - 25
+IS  - 1
+SP  - 1
+EP  - 2
+PB  - The Korean Society of Medical Informatics
+SN  - 2093-3681
+DO  - 10.4258/hir.2019.25.1.1
+UR  - https://e-hir.org/journal/view.php?id=10.4258/hir.2019.25.1.1
+M3  - Editorial
+N1  - Editorial, sem resumo. Afirma que cerca de 80% dos dados médicos permanecem não estruturados e subaproveitados após sua criação.
+ID  - kong2019
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - Leveraging Large Language Models for Decision Support in Personalized Oncology
+AU  - Benary, Manuela
+AU  - Wang, Xing David
+AU  - Schmidt, Max
+AU  - Soll, Dominik
+AU  - Hilfenhaus, Georg
+AU  - Nassir, Mani
+AU  - Sigler, Christian
+AU  - Knödler, Maren
+AU  - Keller, Ulrich
+AU  - Beule, Dieter
+AU  - Keilholz, Ulrich
+AU  - Leser, Ulf
+AU  - Rieke, Damian T.
+T2  - JAMA Network Open
+J2  - JAMA Netw Open
+PY  - 2023
+DA  - 2023/11/17
+VL  - 6
+IS  - 11
+SP  - e2343689
+PB  - American Medical Association
+SN  - 2574-3805
+DO  - 10.1001/jamanetworkopen.2023.43689
+UR  - https://pubmed.ncbi.nlm.nih.gov/37976064/
+AN  - 37976064
+AB  - IMPORTANCE: Clinical interpretation of complex biomarkers for precision oncology currently requires manual investigations of previous studies and databases. Conversational large language models (LLMs) might be beneficial as automated tools for assisting clinical decision-making. OBJECTIVE: To assess performance and define their role using 4 recent LLMs as support tools for precision oncology. DESIGN, SETTING, AND PARTICIPANTS: This diagnostic study examined 10 fictional cases of patients with advanced cancer with genetic alterations. Each case was submitted to 4 different LLMs (ChatGPT, Galactica, Perplexity, and BioMedLM) and 1 expert physician to identify personalized treatment options in 2023. Treatment options were masked and presented to a molecular tumor board (MTB), whose members rated the likelihood of a treatment option coming from an LLM on a scale from 0 to 10 (0, extremely unlikely; 10, extremely likely) and decided whether the treatment option was clinically useful. MAIN OUTCOMES AND MEASURES: Number of treatment options, precision, recall, F1 score of LLMs compared with human experts, recognizability, and usefulness of recommendations. RESULTS: For 10 fictional cancer patients (4 with lung cancer, 6 with other; median [IQR] 3.5 [3.0-4.8] molecular alterations per patient), a median (IQR) number of 4.0 (4.0-4.0) compared with 3.0 (3.0-5.0), 7.5 (4.3-9.8), 11.5 (7.8-13.0), and 13.0 (11.3-21.5) treatment options each was identified by the human expert and 4 LLMs, respectively. When considering the expert as a criterion standard, LLM-proposed treatment options reached F1 scores of 0.04, 0.17, 0.14, and 0.19 across all patients combined. Combining treatment options from different LLMs allowed a precision of 0.29 and a recall of 0.29 for an F1 score of 0.29. LLM-generated treatment options were recognized as AI-generated with a median (IQR) 7.5 (5.3-9.0) points in contrast to 2.0 (1.0-3.0) points for manually annotated cases. A crucial reason for identifying AI-generated treatment options was insufficient accompanying evidence. For each patient, at least 1 LLM generated a treatment option that was considered helpful by MTB members. Two unique useful treatment options (including 1 unique treatment strategy) were identified only by LLM. CONCLUSIONS AND RELEVANCE: In this diagnostic study, treatment options of LLMs in precision oncology did not reach the quality and credibility of human experts; however, they generated helpful ideas that might have complemented established procedures. Considering technological progress, LLMs could play an increasingly important role in assisting with screening and selecting relevant biomedical literature to support evidence-based, personalized treatment decisions.
+N1  - PMID: 37976064
+ID  - benary2023
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Medical Bilingualism: Cross-Ontology Graph Retrieval for Incommensurable Knowledge Bases
+AU  - Wang, Zixuan
+AU  - Lu, Ke
+AU  - Wang, Zihan
+AU  - Lei, Junwei
+AU  - Dong, Junhao
+AU  - Guo, Jinyu
+AU  - Chen, Chaomeng
+A2  - Lee, Hung-Yi
+A2  - Dev, Sunipa
+A2  - Li, Junyi Jessy
+A2  - Elliott, Desmond
+T2  - Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing
+PY  - 2026
+DA  - 2026/10
+SP  - 4591
+EP  - 4612
+CY  - Budapest, Hungary
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-459-0
+DO  - 10.18653/2026.emnlp-main.201
+UR  - https://aclanthology.org/2026.emnlp-main.201/
+AB  - Graph-based Retrieval-Augmented Generation (GraphRAG) can fail in interdisciplinary medicine where evidence comes from incommensurable knowledge systems, e.g., Traditional Chinese Medicine (TCM) and Western Medicine (WM). Similarity-driven retrieval in a shared latent space may over-unify heterogeneous concepts, causing semantic collapse (spurious alignments, provenance-blind mixing, and broken multi-hop chains). We propose Xonto-RAG, a cross-ontology GraphRAG framework that avoids ontological unification by constructing a dual-ontology graph with typed bridges induced via LLM-assisted verify-and-vote. A query-aware Relational Graph Attention Network (RGAT) then assembles compact, provenance-tracked multi-hop evidence subgraphs for grounded generation. Across TCM–WM benchmarks, Xonto-RAG outperforms strong RAG/GraphRAG baselines, seeing up to +22.2% accuracy on MLEC-QA TCWM (vs. OG-RAG), 77.0% accuracy with a 7B backbone, and 85.1% faithfulness on MLEC-TCM, while reducing semantic-collapse failures and yielding interpretable reasoning chains.
+ID  - wang2026
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Medical Graph RAG: Evidence-based Medical Large Language Model via Graph Retrieval-Augmented Generation
+AU  - Wu, Junde
+AU  - Zhu, Jiayuan
+AU  - Qi, Yunli
+AU  - Chen, Jingkun
+AU  - Xu, Min
+AU  - Menolascina, Filippo
+AU  - Jin, Yueming
+AU  - Grau, Vicente
+A2  - Che, Wanxiang
+A2  - Nabende, Joyce
+A2  - Shutova, Ekaterina
+A2  - Pilehvar, Mohammad Taher
+T2  - Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)
+PY  - 2025
+DA  - 2025/07
+SP  - 28443
+EP  - 28467
+CY  - Vienna, Austria
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-251-0
+DO  - 10.18653/v1/2025.acl-long.1381
+UR  - https://aclanthology.org/2025.acl-long.1381/
+AB  - We introduce MedGraphRAG, a novel graph-based Retrieval-Augmented Generation (RAG) framework designed to enhance LLMs in generating evidence-based medical responses, improving safety and reliability with private medical data. We introduce Triple Graph Construction and U-Retrieval to enhance GraphRAG, enabling holistic insights and evidence-based response generation for medical applications. Specifically, we connect user documents to credible medical sources and integrate Top-down Precise Retrieval with Bottom-up Response Refinement for balanced context awareness and precise indexing. Validated on 9 medical Q&A benchmarks, 2 health fact-checking datasets, and a long-form generation test set, MedGraphRAG outperforms state-of-the-art models while ensuring credible sourcing. Our code is publicly available.
+ID  - wu2025
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Beyond Static Retrieval: Opportunities and Pitfalls of Iterative Retrieval in GraphRAG
+AU  - Guo, Kai
+AU  - Dai, Xinnan
+AU  - Zeng, Shenglai
+AU  - Shomer, Harry
+AU  - Han, Haoyu
+AU  - Wang, Yu
+AU  - Liu, Hui
+A2  - Lee, Hung-Yi
+A2  - Dev, Sunipa
+A2  - Li, Junyi Jessy
+A2  - Elliott, Desmond
+T2  - Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing
+PY  - 2026
+DA  - 2026/10
+SP  - 43249
+EP  - 43271
+CY  - Budapest, Hungary
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-459-0
+DO  - 10.18653/2026.emnlp-main.1897
+UR  - https://aclanthology.org/2026.emnlp-main.1897/
+AB  - Graph-based RAG (GraphRAG) leverages entity–relation graphs to support multi-hop reasoning, but most systems still rely on static retrieval. When crucial evidence, especially bridge documents that connect disjoint entities, is absent, reasoning collapses and hallucinations persist. Iterative retrieval, which performs multiple rounds of evidence selection, has emerged as a promising alternative, yet its role within GraphRAG remains poorly understood. We present the first systematic study of iterative retrieval in GraphRAG by analyzing how different strategies interact with graph-based backbones and investigating when they are effective. Our findings reveal both opportunities and pitfalls which together highlight a central bottleneck, namely that GraphRAG’s effectiveness depends not only on recall but also on whether bridge evidence is consistently promoted into leading positions where it can support reasoning chains. To address this limitation, we propose Bridge-Guided Dual-Thought-based Retrieval (BDTR), a simple yet effective framework that generates complementary thoughts and leverages reasoning chains to recalibrate rankings and bring bridge evidence into leading positions. BDTR achieves consistent improvements across diverse GraphRAG settings and provides guidance for the design of future GraphRAG systems. Our code is available at https://github.com/KaiGuo20/BDTR.
+ID  - guo2026
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Structuring Radiology Reports: Challenging LLMs with Lightweight Models
+AU  - Moll, Johannes
+AU  - Fay, Louisa
+AU  - Azhar, Asfandyar
+AU  - Ostmeier, Sophie
+AU  - Gatidis, Sergios
+AU  - Lueth, Tim
+AU  - Langlotz, Curtis P.
+AU  - Delbrouck, Jean-Benoit
+A2  - Christodoulopoulos, Christos
+A2  - Chakraborty, Tanmoy
+A2  - Rose, Carolyn
+A2  - Peng, Violet
+T2  - Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing
+PY  - 2025
+DA  - 2025/11
+SP  - 7707
+EP  - 7724
+CY  - Suzhou, China
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-332-6
+DO  - 10.18653/v1/2025.emnlp-main.392
+UR  - https://aclanthology.org/2025.emnlp-main.392/
+AB  - Radiology reports are critical for clinical decision-making but often lack a standardized format, limiting both human interpretability and machine learning (ML) applications. While large language models (LLMs) have shown strong capabilities in reformatting clinical text, their high computational requirements, lack of transparency, and data privacy concerns hinder practical deployment. To address these challenges, we explore lightweight encoder-decoder models (<300M parameters)—specifically T5 and BERT2BERT—for structuring radiology reports from the MIMIC-CXR and CheXpert Plus datasets. We benchmark these models against eight open-source LLMs (1B–70B parameters), adapted using prefix prompting, in-context learning (ICL), and low-rank adaptation (LoRA) finetuning. Our best-performing lightweight model outperforms all LLMs adapted using prompt-based techniques on a human-annotated test set. While some LoRA-finetuned LLMs achieve modest gains over the lightweight model on the Findings section (BLEU 6.4%, ROUGE-L 4.8%, BERTScore 3.6%, F1-RadGraph 1.1%, GREEN 3.6%, and F1-SRR-BERT 4.3%), these improvements come at the cost of substantially greater computational resources. For example, LLaMA-3-70B incurred more than 400 times the inference time, cost, and carbon emissions compared to the lightweight model. These results underscore the potential of lightweight, task-specific models as sustainable and privacy-preserving solutions for structuring clinical text in resource-constrained healthcare settings.
+N1  - Páginas conforme a ACL Anthology (7707-7724); o registro do Crossref traz 7718-7735.
+ID  - moll2025
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Core-based Hierarchies for Efficient GraphRAG
+AU  - Hossain, Jakir
+AU  - Sarıyüce, Ahmet Erdem
+T2  - Proceedings of the 32nd ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2
+PY  - 2026
+DA  - 2026/08/08
+SP  - 1722
+EP  - 1733
+PB  - ACM
+DO  - 10.1145/3770855.3818007
+UR  - https://doi.org/10.1145/3770855.3818007
+AB  - Retrieval-Augmented Generation (RAG) enhances large language models by incorporating external knowledge. However, existing vector-based methods often fail on global sensemaking tasks that require reasoning across many documents. GraphRAG addresses this by organizing documents into a knowledge graph with hierarchical communities that can be recursively summarized. Current GraphRAG approaches rely on Leiden clustering for community detection, but we prove that on sparse knowledge graphs, where average degree is constant and most nodes have low degree, modularity optimization admits exponentially many near-optimal partitions, making Leiden-based communities inherently non-reproducible. To address this, we propose replacing Leiden with k-core decomposition, which yields a deterministic, density-aware hierarchy in linear time. We introduce a set of lightweight heuristics that leverage the k-core hierarchy to construct size-bounded, connectivity-preserving communities for retrieval and summarization, along with a token-budget-aware sampling strategy that reduces LLM costs. We evaluate our methods on real-world datasets including financial earnings transcripts, news articles, and podcasts, using three LLMs for answer generation and five independent LLM judges for head-to-head evaluation. Across datasets and models, our approach consistently improves answer comprehensiveness and diversity while reducing token usage, demonstrating that k-core-based GraphRAG is an effective and efficient framework for global sensemaking.
+N1  - Versão publicada no KDD 2026. Preprint: arXiv:2603.05207 (doi:10.48550/arXiv.2603.05207).
+ID  - hossain2026
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Overview of the ArchEHR-QA 2025 Shared Task on Grounded Question Answering from Electronic Health Records
+AU  - Soni, Sarvesh
+AU  - Gayen, Soumya
+AU  - Demner-Fushman, Dina
+A2  - Demner-Fushman, Dina
+A2  - Ananiadou, Sophia
+A2  - Miwa, Makoto
+A2  - Tsujii, Junichi
+T2  - Proceedings of the 24th Workshop on Biomedical Language Processing
+PY  - 2025
+DA  - 2025/08
+SP  - 396
+EP  - 405
+CY  - Vienna, Austria
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-275-6
+DO  - 10.18653/v1/2025.bionlp-1.34
+UR  - https://aclanthology.org/2025.bionlp-1.34/
+AB  - This paper presents an overview of the ArchEHR-QA 2025 shared task, which was organized with the 24th BioNLP Workshop at ACL 2025. The goal of this shared task is to develop automated responses to patients’ questions by generating answers that are grounded in key clinical evidence from patients’ electronic health records (EHRs). A total of 29 teams participated in the task, collectively submitting 75 systems, with 24 teams providing their system descriptions. The submitted systems encompassed diverse architectures (including approaches that select the most relevant evidence prior to answer generation), leveraging both proprietary and open-weight large language models, as well as employing various tuning strategies such as fine-tuning and few-shot learning. In this paper, we describe the task setup, the dataset used, the evaluation criteria, and the baseline systems. Furthermore, we summarize the methodologies adopted by participating teams and present a comprehensive evaluation and analysis of the submitted systems.
+ID  - soni2025
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - CuraView: A Multi-Agent Framework for Medical Hallucination Detection with GraphRAG-Enhanced Knowledge Verification
+AU  - Ye, Severin
+AU  - Kong, Xiao
+AU  - He, Xiaopeng
+AU  - Yan, Guangsu
+AU  - Oh, Dongsuk
+T2  - arXiv
+PY  - 2026
+DA  - 2026/05/05
+PB  - arXiv
+DO  - 10.48550/arXiv.2605.03476
+UR  - https://arxiv.org/abs/2605.03476
+AB  - Discharge summaries require extracting critical information from lengthy electronic health records (EHRs), a process that is labor-intensive when performed manually. Large language models (LLMs) can improve generation efficiency; however, they are prone to producing faithfulness hallucinations, statements that contradict source records, posing direct risks to patient safety. To address this, we present CuraView, a multi-agent framework for sentence-level detection and evidence-grounded explanation of faithfulness hallucinations in discharge summaries. CuraView constructs a GraphRAG-based knowledge graph from patient-level EHRs and implements a closed-loop generation-detection pipeline with sentence-level evidence retrieval and classification spanning four evidence grades from strong support to direct contradiction (E1-E4), yielding structured and interpretable evidence chains. We evaluate CuraView on a subset of 250 patients from the Discharge-Me benchmark, with 50 patients held out for testing. Our fine-tuned Qwen3-14B detection model achieves an F1 of 0.831 on the safety-critical E4 metric (90.9% recall, 76.5% precision) and an F1 of 0.823 on E3+E4, representing a 50.0% relative improvement over the base model and outperforming RAGTruth-style and QAGS-style baselines. These results demonstrate that evidence-chain-based graph retrieval verification substantially improves the factual reliability of clinical documentation, while simultaneously producing reusable annotated datasets for downstream model training and distillation.
+N1  - Preprint (arXiv:2605.03476 [cs.CL]). Seção 4.3.2 relata a granularidade excessiva do GraphRAG padrão em prontuários (cada parâmetro laboratorial como entidade) e o princípio de uma única entidade PACIENTE por registro.
+ID  - ye2026
+LA  - en
+ER  - 
+
+TY  - CPAPER
+TI  - Prompting Large Language Models for Italian Clinical Reports: A Benchmark Study
+AU  - Lilli, Livia
+AU  - Masciocchi, Carlotta
+AU  - Marchetti, Antonio
+AU  - Arcuri, Giovanni
+AU  - Patarnello, Stefano
+A2  - Demner-Fushman, Dina
+A2  - Ananiadou, Sophia
+A2  - Miwa, Makoto
+A2  - Tsujii, Junichi
+T2  - Proceedings of the 24th Workshop on Biomedical Language Processing
+PY  - 2025
+DA  - 2025/08
+SP  - 190
+EP  - 200
+CY  - Vienna, Austria
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-275-6
+DO  - 10.18653/v1/2025.bionlp-1.17
+UR  - https://aclanthology.org/2025.bionlp-1.17/
+AB  - Large Language Models (LLMs) have significantly impacted medical Natural Language Processing (NLP), enabling automated information extraction from unstructured clinical texts. However, selecting the most suitable approach requires careful evaluation of different model architectures, such as generative LLMs and BERT-based models, along with appropriate adaptation strategies, including prompting techniques, or fine-tuning. Several studies explored different LLM implementations, highlighting their effectiveness in medical domain, including complex diagnostics patterns as for example in rheumatology. However, their application to Italian remains limited, serving as a key example of the broader gap in non-English language research. In this study, we present a task-specific benchmark analysis comparing generative LLMs and BERT-based models, on real-world Italian clinical reports. We evaluated zero-shot prompting, in-context learning (ICL), and fine-tuning across eight diagnostic categories in the rheumatology area. Results show that ICL improves performance over zero-shot-prompting, particularly for Mixtral and Gemma models. Overall, BERT fine-tuning present the highest performance, while ICL outperforms BERT in specific diagnoses, such as renal and systemic, suggesting that prompting can be a potential alternative when labeled data is scarce.
+ID  - lilli2025
+LA  - en
+ER  - 

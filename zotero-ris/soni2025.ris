@@ -1,0 +1,23 @@
+TY  - CPAPER
+TI  - Overview of the ArchEHR-QA 2025 Shared Task on Grounded Question Answering from Electronic Health Records
+AU  - Soni, Sarvesh
+AU  - Gayen, Soumya
+AU  - Demner-Fushman, Dina
+A2  - Demner-Fushman, Dina
+A2  - Ananiadou, Sophia
+A2  - Miwa, Makoto
+A2  - Tsujii, Junichi
+T2  - Proceedings of the 24th Workshop on Biomedical Language Processing
+PY  - 2025
+DA  - 2025/08
+SP  - 396
+EP  - 405
+CY  - Vienna, Austria
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-275-6
+DO  - 10.18653/v1/2025.bionlp-1.34
+UR  - https://aclanthology.org/2025.bionlp-1.34/
+AB  - This paper presents an overview of the ArchEHR-QA 2025 shared task, which was organized with the 24th BioNLP Workshop at ACL 2025. The goal of this shared task is to develop automated responses to patients’ questions by generating answers that are grounded in key clinical evidence from patients’ electronic health records (EHRs). A total of 29 teams participated in the task, collectively submitting 75 systems, with 24 teams providing their system descriptions. The submitted systems encompassed diverse architectures (including approaches that select the most relevant evidence prior to answer generation), leveraging both proprietary and open-weight large language models, as well as employing various tuning strategies such as fine-tuning and few-shot learning. In this paper, we describe the task setup, the dataset used, the evaluation criteria, and the baseline systems. Furthermore, we summarize the methodologies adopted by participating teams and present a comprehensive evaluation and analysis of the submitted systems.
+ID  - soni2025
+LA  - en
+ER  - 

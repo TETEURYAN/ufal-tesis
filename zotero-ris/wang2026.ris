@@ -1,0 +1,27 @@
+TY  - CPAPER
+TI  - Medical Bilingualism: Cross-Ontology Graph Retrieval for Incommensurable Knowledge Bases
+AU  - Wang, Zixuan
+AU  - Lu, Ke
+AU  - Wang, Zihan
+AU  - Lei, Junwei
+AU  - Dong, Junhao
+AU  - Guo, Jinyu
+AU  - Chen, Chaomeng
+A2  - Lee, Hung-Yi
+A2  - Dev, Sunipa
+A2  - Li, Junyi Jessy
+A2  - Elliott, Desmond
+T2  - Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing
+PY  - 2026
+DA  - 2026/10
+SP  - 4591
+EP  - 4612
+CY  - Budapest, Hungary
+PB  - Association for Computational Linguistics
+SN  - 979-8-89176-459-0
+DO  - 10.18653/2026.emnlp-main.201
+UR  - https://aclanthology.org/2026.emnlp-main.201/
+AB  - Graph-based Retrieval-Augmented Generation (GraphRAG) can fail in interdisciplinary medicine where evidence comes from incommensurable knowledge systems, e.g., Traditional Chinese Medicine (TCM) and Western Medicine (WM). Similarity-driven retrieval in a shared latent space may over-unify heterogeneous concepts, causing semantic collapse (spurious alignments, provenance-blind mixing, and broken multi-hop chains). We propose Xonto-RAG, a cross-ontology GraphRAG framework that avoids ontological unification by constructing a dual-ontology graph with typed bridges induced via LLM-assisted verify-and-vote. A query-aware Relational Graph Attention Network (RGAT) then assembles compact, provenance-tracked multi-hop evidence subgraphs for grounded generation. Across TCM–WM benchmarks, Xonto-RAG outperforms strong RAG/GraphRAG baselines, seeing up to +22.2% accuracy on MLEC-QA TCWM (vs. OG-RAG), 77.0% accuracy with a 7B backbone, and 85.1% faithfulness on MLEC-TCM, while reducing semantic-collapse failures and yielding interpretable reasoning chains.
+ID  - wang2026
+LA  - en
+ER  - 

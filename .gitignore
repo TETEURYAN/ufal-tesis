@@ -14,3 +14,4 @@ tesis/*.lof
 tesis/*.lot
 tesis/*.fls
 tesis/*.fdb_latexmk
+tesis/*.synctex(busy)

@@ -111,7 +111,7 @@ O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustra
       \coordinate (legmid) at ($(itime)!0.5!(qtime)$);
       \node[font=\bfseries] at ([yshift=-1cm]legmid) {Etapa do pipeline};
     \end{tikzpicture}
-    \caption{Pipeline do GraphRAG a partir de um índice de grafo derivado por LLM do texto dos documentos-fonte. O índice abrange nós (entidades) e arestas (relações), além de covariáveis opcionais, detectados, extraídos e resumidos por \textit{prompts} adaptados ao domínio dos dados. A detecção de comunidades (por exemplo, Leiden, \citealt{traag2019}) particiona o índice em grupos de elementos que o LLM resume em paralelo, tanto no tempo de indexação quanto no de consulta. A ``resposta global'' a uma consulta resulta de uma rodada final de sumarização orientada à consulta sobre todos os resumos de comunidade que reportam relevância para ela. Figura extraída de \citet{edge2024} e traduzida pelo autor para fins didáticos.}
+    \caption[Pipeline do GraphRAG]{Pipeline do GraphRAG a partir de um índice de grafo derivado por LLM do texto dos documentos-fonte. O índice abrange nós (entidades) e arestas (relações), além de covariáveis opcionais, detectados, extraídos e resumidos por \textit{prompts} adaptados ao domínio dos dados. A detecção de comunidades (por exemplo, Leiden, \citealt{traag2019}) particiona o índice em grupos de elementos que o LLM resume em paralelo, tanto no tempo de indexação quanto no de consulta. A ``resposta global'' a uma consulta resulta de uma rodada final de sumarização orientada à consulta sobre todos os resumos de comunidade que reportam relevância para ela. Figura extraída de \citet{edge2024} e traduzida pelo autor para fins didáticos.}
     \label{fig:graphrag-pipeline}
 \end{figure}
 
@@ -126,7 +126,7 @@ Essa recursão produz os níveis de comunidade (\textit{community levels}), nív
         \includegraphics[width=0.47\textwidth]{Cap02/figuras/Level1Multihop.jpg} \\
         (a) Comunidades raiz no nível 0 & (b) Subcomunidades no nível 1
     \end{tabular}
-    \caption{Comunidades do grafo detectadas pelo algoritmo de Leiden \citep{traag2019} sobre um conjunto de dados de exemplo, tal como indexado. Os círculos representam nós de entidade, com tamanho proporcional ao grau, e o leiaute foi obtido com os algoritmos OpenORD e Force Atlas~2. As cores identificam comunidades de entidades em dois níveis do agrupamento hierárquico: (a) nível 0, correspondente à partição de modularidade máxima, e (b) nível 1, que revela a estrutura interna dessas comunidades de nível raiz. Níveis mais agregados produzem menos comunidades e resumos mais longos e abstratos; níveis mais granulares produzem muitas comunidades e resumos mais curtos e específicos. Figura extraída de \citet{edge2024}; legenda traduzida e condensada pelo autor para fins didáticos.}
+    \caption[Comunidades detectadas pelo algoritmo de Leiden, em dois níveis]{Comunidades do grafo detectadas pelo algoritmo de Leiden \citep{traag2019} sobre um conjunto de dados de exemplo, tal como indexado. Os círculos representam nós de entidade, com tamanho proporcional ao grau, e o leiaute foi obtido com os algoritmos OpenORD e Force Atlas~2. As cores identificam comunidades de entidades em dois níveis do agrupamento hierárquico: (a) nível 0, correspondente à partição de modularidade máxima, e (b) nível 1, que revela a estrutura interna dessas comunidades de nível raiz. Níveis mais agregados produzem menos comunidades e resumos mais longos e abstratos; níveis mais granulares produzem muitas comunidades e resumos mais curtos e específicos. Figura extraída de \citet{edge2024}; legenda traduzida e condensada pelo autor para fins didáticos.}
     \label{fig:leiden-hierarquia}
 \end{figure}
 
@@ -182,7 +182,7 @@ Na etapa de consulta, o GraphRAG oferece modos de busca distintos, que exploram 
 \draw[arr, bend left=30] (de) to (ds);
 \node[note] at (4.4,-6) {iterações global $\leftrightarrow$ local};
 \end{tikzpicture}
-\caption{Representação esquemática dos quatro modos de busca do Microsoft GraphRAG e da parcela do índice que cada um percorre.}
+\caption[Modos de busca do GraphRAG]{Representação esquemática dos quatro modos de busca do Microsoft GraphRAG e da parcela do índice que cada um percorre.}
 \label{fig:modos-busca}
 \end{figure}
 
@@ -214,7 +214,7 @@ O tamanho da janela de contexto dos LLMs cresceu de forma acelerada. Modelos amp
 \addplot[smooth] {0.9 - 0.55*exp(-((x-10.5)^2)/40)};
 \end{axis}
 \end{tikzpicture}
-\caption{Representação esquemática do fenômeno \textit{lost in the middle}. O desempenho é maior quando a informação relevante ocupa o início ou o fim do contexto e cai quando ela se encontra no meio, configurando a curva em U observada por \citet{liu2024}. A figura ilustra apenas o formato da relação, sem reproduzir valores específicos.}
+\caption[Representação esquemática do fenômeno \textit{lost in the middle}]{Representação esquemática do fenômeno \textit{lost in the middle}. O desempenho é maior quando a informação relevante ocupa o início ou o fim do contexto e cai quando ela se encontra no meio, configurando a curva em U observada por \citet{liu2024}. A figura ilustra apenas o formato da relação, sem reproduzir valores específicos.}
 \label{fig:lost-middle}
 \end{figure}
 

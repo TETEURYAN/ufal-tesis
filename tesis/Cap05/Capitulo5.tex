@@ -8,7 +8,7 @@ A Tabela~\ref{tab:res-metricas-gerais} reúne as métricas agregadas dos seis si
 
 \begin{table}[!htbp]
 \centering
-\caption{Métricas agregadas dos seis sistemas avaliados sobre os 537 prontuários (531 para S8, conforme a Seção~\ref{sec:met-mcnemar}).}
+\caption[Métricas agregadas dos seis sistemas avaliados]{Métricas agregadas dos seis sistemas avaliados sobre os 537 prontuários (531 para S8, conforme a Seção~\ref{sec:met-mcnemar}).}
 \label{tab:res-metricas-gerais}
 \begin{tabular}{lccccccc}
 \toprule
@@ -46,7 +46,7 @@ O padrão mais relevante da Tabela~\ref{tab:res-metricas-gerais} é a assimetria
 \legend{Precisão macro, Revocação macro, F1 macro}
 \end{axis}
 \end{tikzpicture}
-\caption{Precisão, revocação e F1 macro por sistema. Os sistemas \textit{drift} (S7, S8) obtêm maior F1 pela revocação muito mais alta, não por precisão superior.}
+\caption[Precisão, revocação e F1 macro por sistema]{Precisão, revocação e F1 macro por sistema. Os sistemas \textit{drift} (S7, S8) obtêm maior F1 pela revocação muito mais alta, não por precisão superior.}
 \label{fig:res-f1-sistemas}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}.}
 \end{figure}
@@ -58,7 +58,7 @@ A Tabela~\ref{tab:res-mcnemar} apresenta o resultado do teste de McNemar exato (
 
 \begin{table}[!htbp]
 \centering
-\caption{Teste de McNemar exato entre os níveis de comunidade 1 e 2, por modo de busca, sobre a acurácia de correspondência exata.}
+\caption[Teste de McNemar entre níveis de comunidade, por modo]{Teste de McNemar exato entre os níveis de comunidade 1 e 2, por modo de busca, sobre a acurácia de correspondência exata.}
 \label{tab:res-mcnemar}
 \begin{tabular}{lcccc}
 \toprule
@@ -99,7 +99,7 @@ A Figura~\ref{fig:res-f1-doenca} compara o F1 por doença entre S1 (\textit{basi
 \legend{S1 (\textit{basic}), S3 (\textit{local}), S7 (\textit{drift})}
 \end{axis}
 \end{tikzpicture}
-\caption{F1 por doença nos três sistemas de nível 1.}
+\caption[F1 por doença, três sistemas de nível 1]{F1 por doença nos três sistemas de nível 1.}
 \label{fig:res-f1-doenca}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}.}
 \end{figure}
@@ -109,7 +109,7 @@ As matrizes de confusão por doença (Figuras~\ref{fig:res-confusao-s7} e~\ref{f
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{Cap05/figuras/matriz_confusao_S7.png}
-\caption{Matrizes de confusão por doença, sistema S7 (\textit{drift}, nível 1).}
+\caption[Matrizes de confusão por doença, sistema S7]{Matrizes de confusão por doença, sistema S7 (\textit{drift}, nível 1).}
 \label{fig:res-confusao-s7}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com a biblioteca matplotlib.}
 \end{figure}
@@ -117,7 +117,7 @@ As matrizes de confusão por doença (Figuras~\ref{fig:res-confusao-s7} e~\ref{f
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{Cap05/figuras/matriz_confusao_S8.png}
-\caption{Matrizes de confusão por doença, sistema S8 (\textit{drift}, nível 2).}
+\caption[Matrizes de confusão por doença, sistema S8]{Matrizes de confusão por doença, sistema S8 (\textit{drift}, nível 2).}
 \label{fig:res-confusao-s8}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com a biblioteca matplotlib.}
 \end{figure}
@@ -132,7 +132,7 @@ O grupo A reúne 206 pares paciente/doença em que o \textit{drift} identifica c
 
 \begin{table}[!htbp]
 \centering
-\caption{Resultado dos testes de hipótese para o grupo em que o \textit{drift} acerta e a maioria dos demais erra ($n_A=206$, $n_B=593$).}
+\caption[Testes de hipótese: \textit{drift} acerta, demais erram]{Resultado dos testes de hipótese para o grupo em que o \textit{drift} acerta e a maioria dos demais erra ($n_A=206$, $n_B=593$).}
 \label{tab:res-h1-h4-acerto}
 \begin{tabular}{lp{6.4cm}cc}
 \toprule
@@ -155,7 +155,7 @@ O grupo A desta investigação reúne 291 pares paciente/doença em que a doenç
 
 \begin{table}[!htbp]
 \centering
-\caption{Resultado dos testes de hipótese para o grupo em que o \textit{drift} erra (falso positivo) e a maioria dos demais acerta ($n_A=291$, $n_B=3144$, salvo H3, restrita a HDA).}
+\caption[Testes de hipótese: \textit{drift} erra, demais acertam]{Resultado dos testes de hipótese para o grupo em que o \textit{drift} erra (falso positivo) e a maioria dos demais acerta ($n_A=291$, $n_B=3144$, salvo H3, restrita a HDA).}
 \label{tab:res-h1-h4-erro}
 \begin{tabular}{lp{6.4cm}cc}
 \toprule
@@ -177,7 +177,7 @@ A Figura~\ref{fig:res-acerto-erro-tamanho} ilustra esse padrão sobre todos os p
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.92\textwidth]{Cap05/figuras/grafico_acertos_erros_drift.png}
-\caption{Acerto e erro do \textit{drift} (S7 e S8) por tamanho do texto do prontuário. Cada ponto é um par paciente-doença avaliado; as linhas verticais marcam a mediana de cada grupo.}
+\caption[Acerto e erro do \textit{drift} por tamanho do prontuário]{Acerto e erro do \textit{drift} (S7 e S8) por tamanho do texto do prontuário. Cada ponto é um par paciente-doença avaliado; as linhas verticais marcam a mediana de cada grupo.}
 \label{fig:res-acerto-erro-tamanho}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
 \end{figure}
@@ -213,7 +213,7 @@ Para ilustrar o mecanismo topológico por trás de parte dos erros do \textit{dr
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.85\textwidth]{Cap05/figuras/subgrafo_paciente_1800283_comunidades_457_460.png}
-\caption{Subgrafo do paciente 1800283, com destaque para as comunidades de nível 1 que concentram suas entidades (comunidades 457 e 460). Entidades fora dessas comunidades aparecem em cinza.}
+\caption[Subgrafo do paciente 1800283, por comunidade]{Subgrafo do paciente 1800283, com destaque para as comunidades de nível 1 que concentram suas entidades (comunidades 457 e 460). Entidades fora dessas comunidades aparecem em cinza.}
 \label{fig:res-subgrafo-1800283}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas NetworkX e matplotlib.}
 \end{figure}
@@ -223,7 +223,7 @@ A Figura~\ref{fig:res-maiores-grafos} generaliza a observação, comparando os s
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=\textwidth]{Cap05/figuras/comparacao_maiores_grafos.png}
-\caption{Comparação dos seis maiores subgrafos (por número de entidades) entre os 537 prontuários da amostra.}
+\caption[Comparação dos seis maiores subgrafos da amostra]{Comparação dos seis maiores subgrafos (por número de entidades) entre os 537 prontuários da amostra.}
 \label{fig:res-maiores-grafos}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas NetworkX e matplotlib.}
 \end{figure}
@@ -231,7 +231,7 @@ A Figura~\ref{fig:res-maiores-grafos} generaliza a observação, comparando os s
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.95\textwidth]{Cap05/figuras/analise_estrutural_subgrafos.png}
-\caption{Distribuição do número de entidades, relações e comunidades distintas por prontuário, e relação entre entidades e relações.}
+\caption[Distribuição estrutural dos subgrafos por prontuário]{Distribuição do número de entidades, relações e comunidades distintas por prontuário, e relação entre entidades e relações.}
 \label{fig:res-estrutura-agregada}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
 \end{figure}

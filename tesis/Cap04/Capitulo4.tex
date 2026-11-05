@@ -48,7 +48,7 @@ As seções seguem a ordem cronológica de execução do trabalho, sintetizada n
 \draw[seta] (par.south) -- ++(0,-0.45) -| (met.north);
 \draw[seta] (par.south) -- ++(0,-0.45) -| (qua.north);
 \end{tikzpicture}
-\caption{Visão geral do percurso metodológico. O ramo da esquerda corresponde ao funil de construção da amostra e dos rótulos de referência (Seção~\ref{sec:met-amostra}); o da direita, à indexação do corpus pelo GraphRAG (Seção~\ref{sec:met-grafo}). Os dois ramos convergem nas consultas dos sistemas avaliados, cujas respostas são convertidas em classes e analisadas quantitativa e qualitativamente.}
+\caption[Visão geral do percurso metodológico]{Visão geral do percurso metodológico. O ramo da esquerda corresponde ao funil de construção da amostra e dos rótulos de referência (Seção~\ref{sec:met-amostra}); o da direita, à indexação do corpus pelo GraphRAG (Seção~\ref{sec:met-grafo}). Os dois ramos convergem nas consultas dos sistemas avaliados, cujas respostas são convertidas em classes e analisadas quantitativa e qualitativamente.}
 \label{fig:met-visao-geral}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
@@ -95,7 +95,7 @@ A Tabela~\ref{tab:met-distribuicao} apresenta a distribuição final das classes
 
 \begin{table}[!htbp]
 \centering
-\caption{Distribuição das classes na amostra de 537 prontuários. Como a classificação é multirrótulo, os percentuais não somam 100\%.}
+\caption[Distribuição das classes na amostra de 537 prontuários]{Distribuição das classes na amostra de 537 prontuários. Como a classificação é multirrótulo, os percentuais não somam 100\%.}
 \label{tab:met-distribuicao}
 \begin{tabular}{lrr}
 \toprule
@@ -147,7 +147,7 @@ O cruzamento dos quatro modos de busca com dois níveis de comunidade, 1 e 2, pr
 
 \begin{table}[!htbp]
 \centering
-\caption{Sistemas avaliados, definidos pelo cruzamento entre modo de busca e nível de comunidade.}
+\caption[Sistemas avaliados, por modo de busca e nível de comunidade]{Sistemas avaliados, definidos pelo cruzamento entre modo de busca e nível de comunidade.}
 \label{tab:met-sistemas}
 \begin{tabular}{lcc}
 \toprule
@@ -171,7 +171,7 @@ A hierarquia produzida pelo algoritmo de Leiden possui 7 níveis, e a Tabela~\re
 
 \begin{table}[!htbp]
 \centering
-\caption{Número e tamanho das comunidades, em entidades, em cada nível da hierarquia do índice. Os níveis 1 e 2 foram os adotados nos sistemas avaliados.}
+\caption[Número e tamanho das comunidades por nível da hierarquia]{Número e tamanho das comunidades, em entidades, em cada nível da hierarquia do índice. Os níveis 1 e 2 foram os adotados nos sistemas avaliados.}
 \label{tab:met-niveis}
 \begin{tabular}{crrr}
 \toprule
@@ -216,7 +216,7 @@ A Tabela~\ref{tab:met-prompts} resume a evolução das versões. A versão 2 acr
 
 \begin{table}[!htbp]
 \centering
-\caption{Evolução do \textit{prompt} de extração e problema que motivou cada versão.}
+\caption[Evolução do \textit{prompt} de extração]{Evolução do \textit{prompt} de extração e problema que motivou cada versão.}
 \label{tab:met-prompts}
 \begin{tabular}{cp{7.0cm}p{5.6cm}}
 \toprule

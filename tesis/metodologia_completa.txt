@@ -1,0 +1,594 @@
+METODOLOGIA — GraphRAG aplicado à extração multilabel de doenças
+hepáticas a partir de prontuários eletrônicos
+================================================================================
+
+Este documento descreve, em ordem cronológica de execução, todo o
+percurso metodológico do trabalho: da escolha do problema e dos dados
+até a análise estatística dos resultados finais. Cada decisão é
+acompanhada da justificativa numérica correspondente, apurada
+diretamente nos dados e no código do projeto — não são afirmações
+genéricas, são números reproduzíveis a partir dos arquivos do
+repositório.
+
+
+1. OBJETIVO
+================================================================================
+
+O trabalho avalia o desempenho de diferentes configurações de um
+pipeline RAG baseado em grafo de conhecimento (Microsoft GraphRAG) numa
+tarefa de classificação multilabel sobre texto clínico não estruturado:
+dado o texto completo de um prontuário eletrônico, identificar quais,
+dentre 8 doenças hepáticas pré-definidas, estão CLARAMENTE documentadas
+como presentes naquele paciente. A pergunta central não é apenas "o
+sistema acerta?", mas "QUAL configuração de busca do GraphRAG — e por
+quê — funciona melhor pra esse tipo de extração clínica?".
+
+
+2. ESCOLHA DAS 8 DOENÇAS-ALVO
+================================================================================
+
+As 8 classes avaliadas — cirrose hepática, esquistossomose, hepatite B,
+hepatite C, esteatose hepática, hipertensão portal, hemorragia
+digestiva alta e peritonite bacteriana espontânea (PBE) — não foram
+escolhidas por critério estatístico nem descobertas de forma
+exploratória no texto. Foram definidas a priori por uma profissional da
+área da saúde (hepatologia), com base na relevância clínica dessas
+condições no contexto do ambulatório de origem dos dados. Essa lista
+fixa é o ponto de partida de todo o resto do pipeline: tanto a triagem
+de prontuários candidatos (seção 4) quanto o prompt de extração
+(seção 6) são construídos em torno exatamente dessas 8 categorias.
+
+
+3. CORPUS E CONSTRUÇÃO DO GRAFO DE CONHECIMENTO
+================================================================================
+
+3.1 Dataset bruto
+
+Os dados de origem são prontuários eletrônicos reais de um ambulatório
+de hepatologia em Maceió/AL, anonimizados antes do uso. O corpus
+completo reúne 3.757 prontuários únicos, totalizando 6.405 registros de
+atendimento — cada prontuário é a concatenação cronológica de todas as
+evoluções daquele paciente, com os atendimentos individuais separados
+por um marcador textual ("--- Atendimento ---").
+
+3.2 Indexação: como o GraphRAG transforma texto em grafo
+
+A indexação acontece uma única vez, antes de qualquer consulta, e segue
+quatro etapas:
+
+  (1) Chunking — o corpus é fatiado em unidades de texto menores
+      ("text units"; 5.541 no índice final), unidade mínima que depois
+      se referencia tanto a entidades quanto a documentos de origem.
+
+  (2) Extração de entidades e relações — um LLM lê cada text unit e
+      identifica entidades nomeadas (diagnósticos, exames, medicamentos,
+      procedimentos, sinais clínicos etc.) e as relações entre elas.
+      O resultado é um grafo com 26.966 entidades e 88.347 relações.
+
+  (3) Detecção de comunidades — o algoritmo Leiden hierárquico
+      (graspologic.partition.hierarchical_leiden) particiona esse grafo
+      em grupos de nós fortemente interconectados, maximizando
+      modularidade. A característica central desse algoritmo é ser
+      RECURSIVO: as comunidades de um nível são subdivididas em
+      subcomunidades no nível seguinte, gerando uma hierarquia de 7
+      níveis (0, o mais amplo, a 6, o mais granular). É importante
+      registrar que essa partição é puramente TOPOLÓGICA — depende só
+      de quem está conectado a quem e com que peso, sem nenhuma etapa
+      semântica embutida na clusterização em si.
+
+  (4) Relatório de comunidade — para cada comunidade resultante, um LLM
+      lê as entidades, relações e trechos de texto associados a ela e
+      produz um resumo textual descritivo. Esses relatórios são o
+      material que os métodos de busca `global` e `drift` consultam.
+
+3.3 Prompt tuning: por que a extração reflete vocabulário clínico
+
+Antes da indexação, foi executado o comando de auto-tuning de prompts
+do próprio GraphRAG (`graphrag prompt-tune`), que gera prompts de
+extração adaptados ao domínio a partir de uma amostra do próprio
+corpus — em vez de usar os prompts genéricos padrão do framework. O
+repositório preserva as duas versões lado a lado, o que permite
+comparar diretamente:
+
+  - `experimentos/local copy/prompts/` — os prompts TUNED, efetivamente
+    referenciados no `settings.yaml` e usados na indexação real.
+  - `experimentos/local copy/no-prompt-tuned/prompts/` — os prompts
+    GENÉRICOS originais, mantidos só como referência de comparação.
+
+A diferença mais relevante está no prompt de extração de
+entidades/relações (`extract_graph.txt`): a versão genérica exige uma
+lista FIXA de tipos de entidade, passada como variável `{entity_types}`
+(tipicamente categorias amplas de propósito geral, como "pessoa,
+organização, local"); a versão tuned, de 240 linhas contra 120 da
+genérica, não fixa tipos — pede ao modelo que sugira categorias o mais
+gerais possível a partir do próprio conteúdo. É esse ajuste que explica
+por que o grafo final tem tipos de entidade específicos do domínio
+clínico — CONDICAO_CLINICA, EXAME, EXAME_LABORATORIAL, MEDICAMENTO,
+PROCEDIMENTO, SINAL_CLINICO, ÓRGÃO, HÁBITO, PROTOCOLO, observados
+diretamente nos subgrafos extraídos — em vez de categorias genéricas
+sem relação com o domínio. Esse ajuste é pré-requisito de qualidade
+para qualquer um dos 4 métodos de busca avaliados, já que todos
+dependem, em graus diferentes, da qualidade do grafo construído aqui.
+
+
+4. SELEÇÃO DA AMOSTRA DE 537 PRONTUÁRIOS
+================================================================================
+
+4.1 Não é amostra aleatória do corpus
+
+O conjunto de 537 prontuários usado em todos os experimentos — número
+confirmado diretamente em `ground_truth_segunda_opiniao.csv` (537
+linhas, 537 identificadores únicos) — é um recorte do corpus de 3.757,
+construído por um funil de três etapas, não por sorteio aleatório.
+Uma amostra aleatória simples teria prevalência baixa demais de cada
+uma das 8 doenças para permitir avaliação multilabel com N razoável
+por classe; o funil abaixo resolve isso enriquecendo a amostra com
+prontuários que plausivelmente mencionam as condições de interesse.
+
+4.2 O funil de três etapas
+
+  Etapa 1 — Triagem por regex (`filtro_triagem.py`): varre o texto bruto
+  de todo o corpus atrás de menções às 8 doenças-alvo, com quatro
+  correções sobre um regex ingênuo, cada uma motivada por um problema
+  real observado em teste manual preliminar:
+    - ignora a colisão entre a sigla "HDA" da doença-alvo e o cabeçalho
+      de seção "H.D.A." (História da Doença Atual) — essa colisão
+      sozinha respondia por ~73% dos falsos positivos de HDA antes da
+      correção;
+    - descarta menções explicitamente negadas ("nega", "ausente",
+      "descartado" etc.);
+    - descarta hedges — menções marcadas por incerteza ("?", "a
+      esclarecer", "suspeita de", "epidemiologia positiva") não contam
+      como achado positivo, só como risco;
+    - descarta menções em contexto histórico/já resolvido ("passado
+      de", "história de"), exceto quando é o motivo do atendimento
+      atual.
+  A saída dessa etapa é uma lista de prontuários CANDIDATOS: aqueles
+  que mencionam ao menos uma das 8 doenças de forma textualmente
+  plausível.
+
+  Etapa 2 — Triagem por LLM (`screen_candidatos.py`): segunda passada
+  sobre os candidatos da regex, com uma chamada direta de chat — sem
+  indexação nem retrieval, só uma pergunta curta — pedindo confirmação
+  SIM/NÃO por doença candidata, reduzindo o volume de falsos positivos
+  antes da revisão humana. Executada em paralelo (10 threads) e de
+  forma resumível.
+
+  Etapa 3 — Anotação manual ("segunda opinião"): revisão humana final
+  dos candidatos que sobreviveram às duas etapas anteriores, produzindo
+  o rótulo definitivo registrado em `ground_truth_segunda_opiniao.csv`.
+
+4.3 Evidência numérica de que o funil realmente molda a amostra final
+
+O arquivo `candidatos_expansao_amostra_estratificada.json` registra 396
+prontuários candidatos de uma rodada específica de expansão da amostra.
+Cruzando esse conjunto com os 68 prontuários que terminaram rotulados
+como "Nenhuma" (nenhuma das 8 doenças confirmada) no ground truth
+final, 43 deles (63%) pertencem a esse mesmo grupo de candidatos — ou
+seja, foram sinalizados pela triagem textual (mencionavam alguma das 8
+doenças) mas a revisão (LLM e/ou manual) concluiu que a menção não se
+confirmava como diagnóstico presente, fosse por negação, hedge ou
+contexto histórico que o regex não capturou sozinho. Isso demonstra, com
+números, que o grupo "sem doença" da amostra não é um grupo de controle
+aleatório — é, em parte substancial, resultado do próprio funil de
+triagem filtrando falsos positivos.
+
+4.4 Distribuição final das classes (multilabel — percentuais não somam 100%)
+
+  Doença                           N pacientes    % da amostra
+  hipertensão portal                    201          37,4%
+  esteatose hepática                    156          29,1%
+  cirrose hepática                      152          28,3%
+  esquistossomose                        95          17,7%
+  hepatite B                             90          16,8%
+  hepatite C                             67          12,5%
+  hemorragia digestiva alta              36           6,7%
+  PBE                                     2           0,4%
+  Nenhuma das 8 (grupo controle)          68          12,7%
+
+  Média de 1,49 doenças confirmadas por paciente.
+
+PBE merece registro à parte: com apenas 2 casos positivos em toda a
+amostra, qualquer métrica de precisão/recall/F1 sobre essa classe deve
+ser lida como ruído estatístico, não como sinal de desempenho real —
+uma única previsão a mais ou a menos muda a métrica inteira.
+
+4.5 Implicação metodológica a declarar como limitação
+
+A prevalência das 8 classes nessa amostra não deve ser extrapolada
+como prevalência real na população geral de pacientes do ambulatório —
+é um artefato do critério de seleção enriquecido, não uma estimativa
+epidemiológica.
+
+
+5. ARQUITETURA DE BUSCA: OS QUATRO MÉTODOS DO GRAPHRAG
+================================================================================
+
+Com o grafo já construído, cada consulta (um prontuário + o prompt de
+extração) pode ser respondida por quatro métodos de busca distintos,
+que diferem em como percorrem o grafo:
+
+  - basic — busca direta, sem uso estruturado do grafo: essencialmente
+    um chat completion com o texto do prontuário embutido na própria
+    consulta, sem retrieval adicional do índice.
+
+  - local — recupera contexto centrado em ENTIDADES relevantes à
+    consulta (a própria entidade, suas relações diretas, os text units
+    de origem). Seu desempenho depende diretamente do que foi
+    efetivamente extraído na etapa de indexação — se uma entidade
+    nunca foi criada ali, o `local` não tem como recuperá-la depois.
+
+  - global — percorre os RELATÓRIOS DE COMUNIDADE, de um nível fixo da
+    hierarquia ou, quando o `dynamic-community-selection` está ativo,
+    navegando a hierarquia de forma adaptativa a partir do nível 0,
+    avaliando a relevância de cada comunidade antes de decidir se
+    desce mais um nível.
+
+  - drift — combina local e global de forma ITERATIVA: faz uma
+    varredura inicial (primer), gera perguntas de acompanhamento
+    (follow-ups, configurado para até 6 por consulta) com base no que
+    já foi encontrado, e refaz buscas locais específicas para cada
+    uma, refinando a resposta em múltiplas rodadas. É esse mecanismo
+    de múltiplas passadas — não maior "inteligência" do modelo — que
+    explica boa parte dos resultados discutidos na seção 10.
+
+
+6. DESENHO EXPERIMENTAL: OITO SISTEMAS COMPARADOS
+================================================================================
+
+O cruzamento dos 4 métodos de busca com 2 níveis de comunidade (1 e 2)
+produz os 8 sistemas avaliados lado a lado sobre os mesmos 537
+prontuários, com o mesmo prompt e, a partir de determinado ponto do
+trabalho, o mesmo modelo de linguagem — de forma que o MÉTODO DE BUSCA
+seja a única variável relevante isolada na comparação:
+
+  S1 = basic  nível 1          S5 = global nível 1
+  S2 = basic  nível 2          S6 = global nível 2
+  S3 = local  nível 1          S7 = drift  nível 1
+  S4 = local  nível 2          S8 = drift  nível 2
+
+6.1 Por que avaliar dois níveis de comunidade, e por que especificamente
+    1 e 2
+
+A hierarquia de comunidades tem 7 níveis (0 a 6). A tabela abaixo,
+medida diretamente em `communities.parquet`, mostra como o número e o
+tamanho das comunidades evoluem ao longo da hierarquia:
+
+  Nível   Nº comunidades   Tamanho médio   Tamanho mediano (entidades)
+    0            46             543,6                5
+    1           501              49,7                5
+    2          1475              16,1                6
+    3          1959               9,7                4
+    4           591              15,9                3
+    5            60              85,1                6
+    6             7             577,3                2
+
+O nível 0 foi descartado por ter só 46 comunidades com tamanho médio de
+543,6 entidades (a distribuição é fortemente assimétrica — a mediana é
+de apenas 5 — ou seja, poucas comunidades gigantes concentram a maior
+parte do grafo): usá-lo agregaria informação de muitos pacientes e
+temas heterogêneos numa única comunidade, incompatível com uma tarefa
+que exige granularidade por paciente. Os níveis 3 a 6, por outro lado,
+já fragmentam o grafo em um número de comunidades 4 a 6 vezes maior que
+o nível 1, sem ganho claro de especificidade (o tamanho mediano já cai
+de 5-6 para 3-4 entidades por comunidade a partir do nível 3), o que
+infla o custo computacional de métodos que percorrem comunidades
+inteiras (como o `global`) sem benefício evidente — e corre o risco de
+fragmentar entidades clinicamente relacionadas em comunidades distintas
+demais.
+
+Os níveis 1 e 2 ficam no meio-termo dessa hierarquia: finos o
+suficiente para separar temas clínicos distintos, sem o custo
+computacional e o risco de fragmentação excessiva dos níveis mais
+profundos. Avaliar os DOIS, em vez de escolher um único nível a priori,
+permite verificar empiricamente se a escolha do nível realmente afeta
+o desempenho — o que é testado formalmente a seguir.
+
+6.2 Teste de hipótese: a escolha entre nível 1 e nível 2 faz diferença
+    estatisticamente significativa no desempenho?
+
+Metodologia: teste de McNemar exato (teste binomial sobre as
+discordâncias pareadas) comparando o acerto exato (exact-match) por
+paciente entre o mesmo método nos níveis 1 e 2 — pareado porque são os
+MESMOS 537 pacientes avaliados nos dois níveis, dentro de cada método.
+
+  Método    N      Nível 1 só acerta   Nível 2 só acerta   p-valor    Resultado
+  basic    537            45                   40           0,6646   sem diferença significativa
+  local    537            44                   47           0,8341   sem diferença significativa
+  drift    531            44                   61           0,1180   sem diferença significativa
+
+Em nenhum dos três métodos a diferença entre os níveis atinge
+significância estatística convencional (todos p > 0,05). Esse
+resultado é, em si, um achado metodológico relevante: justifica ter
+mantido os dois níveis no desenho experimental, já que nenhum dos dois
+se mostra objetivamente superior a priori, e escolher apenas um
+introduziria um viés de seleção não sustentado pelos dados. Vale notar
+que, mesmo sem significância estatística, o `drift` é o único método em
+que a diferença aponta consistentemente a favor do nível 2 (61 vitórias
+exclusivas contra 44, quase 1,4 vez mais) — padrão coerente com o
+resultado agregado, em que S8 (drift nível 2) supera S7 (drift nível 1)
+no F1 macro (0,798 contra 0,745).
+
+
+7. O PROMPT DE EXTRAÇÃO MULTILABEL
+================================================================================
+
+O prompt enviado a cada consulta passou por três versões ao longo do
+trabalho, cada uma corrigindo um problema concreto identificado na
+análise de erros das versões anteriores.
+
+7.1 Estrutura comum às três versões
+
+Todas pedem explicitamente quais, das 8 doenças, estão CLARAMENTE
+documentadas como PRESENTES (diagnóstico explícito, exame confirmatório
+ou estadiamento formal), truncam o texto do prontuário em 8.000
+caracteres, e exigem resposta ancorada em tags `<RESPOSTA>...
+</RESPOSTA>`, uma doença por linha, no formato "NOME DA DOENÇA: trecho
+que confirma". Todas incluem regras de negação (resultado "NR" ou
+"negativo" indica ausência, não presença) e uma regra temporal
+específica para hemorragia digestiva alta e PBE (só contam se ativas ou
+recentes, não episódio antigo já resolvido).
+
+7.2 Versão 2 — reforço de formato
+
+Acrescenta a exigência de que o nome da doença na resposta seja
+EXATAMENTE um dos 8 nomes canônicos da lista, sem variação ou sinônimo
+— mudança motivada por dificuldades do parser em reconhecer variações
+livres de nomenclatura na primeira versão.
+
+7.3 Versão 3 — reforço semântico (versão final, usada em S1-S4 na
+    rodada definitiva e testada isoladamente no drift)
+
+Acrescenta um bloco explícito de três confusões recorrentes
+identificadas na análise qualitativa dos erros:
+
+  (1) hemorragia digestiva ALTA não é sangramento baixo/retal
+      (hemorroida, fissura anal) — distinção anatômica explícita;
+  (2) "hipertensão portal" não é "hipertensão arterial"/pressão
+      arterial — termos que só compartilham a palavra "hipertensão";
+  (3) proibição de citar ou inferir escores de estadiamento (Child-Pugh,
+      MELD, FIB-4) que não estejam literalmente escritos no texto, e
+      proibição de usar achados de sistemas/órgãos sem relação hepática
+      direta como evidência, a menos que o texto estabeleça
+      explicitamente essa relação causal.
+
+Reforça também a proibição de listar uma doença só por menção de risco,
+probabilidade ou epidemiologia sem diagnóstico confirmado.
+
+
+8. MODELO DE LINGUAGEM E INFRAESTRUTURA DE EXECUÇÃO
+================================================================================
+
+8.1 Modelo
+
+O modelo usado na rodada final de todos os 8 sistemas é o
+inclusionai/ling-3.0-flash, acessado via OpenRouter (provedor Novita,
+US$ 0,021 / US$ 0,063 por milhão de tokens de entrada/saída). É um
+modelo de raciocínio híbrido (hybrid-reasoning): gera tokens de
+"pensamento" invisíveis antes da resposta final, o que aumenta custo e
+latência de forma substancial e com alta variância — uma mesma consulta
+pode levar de segundos a dezenas de minutos, de forma pouco previsível.
+Uma versão anterior, não-raciocínio (inclusionai/ling-2.6-flash), foi
+usada em parte inicial do trabalho e depois substituída para nivelar a
+comparação entre todos os 8 sistemas sobre o mesmo modelo.
+
+8.2 Correções aplicadas sobre o GraphRAG
+
+Três patches foram necessários para viabilizar a execução nesse
+modelo/provedor:
+
+  - Correção de escopo no forçamento de JSON: o GraphRAG original força
+    `response_format=json_object` nas etapas de map (`global`) e primer
+    (`drift`), o que falha contra provedores que só aceitam
+    `json_schema`. Uma primeira correção removia esse forçamento de
+    QUALQUER chamada de LLM, mas isso afetava também a etapa de
+    avaliação de relevância de comunidades (`rate_relevancy`, usada
+    pelo `dynamic-community-selection`), causando centenas de respostas
+    malformadas por consulta. A correção final restringe a remoção,
+    via inspeção de pilha de chamada, apenas aos módulos que de fato
+    têm o problema original, preservando o comportamento nativo em
+    todo o resto.
+  - Injeção correta do esforço de raciocínio: o campo `reasoning_effort`
+    do `settings.yaml` do GraphRAG não produz efeito real quando a
+    chamada passa por litellm até o OpenRouter (é descartado
+    silenciosamente); foi necessário injetar
+    `extra_body={"reasoning": {"effort": "low"}}` diretamente nas
+    chamadas de completion, formato que o OpenRouter de fato reconhece.
+  - Paralelização: a execução originalmente sequencial (uma consulta
+    por vez) era inviável em escala com um modelo de raciocínio lento.
+    A paralelização foi implementada com concorrência ajustada
+    empiricamente por método, a partir da medição real de uso de
+    memória por processo (o teto real era a RAM da máquina local, não
+    limite de taxa da API): basic = 6 processos simultâneos, local = 3
+    (usa cerca de 1,3 GB por processo, quase o dobro do basic),
+    global/drift = 2.
+
+
+9. EXTRAÇÃO DA RESPOSTA: DO TEXTO LIVRE AO CONJUNTO DE CLASSES
+================================================================================
+
+A resposta de cada consulta é texto livre (ainda que ancorado em tags),
+e precisa ser convertida num conjunto de classes positivas por um
+parser determinístico — a mesma lógica usada em todas as análises do
+trabalho, para garantir comparabilidade entre sistemas.
+
+O parser varre a resposta ancorada linha a linha, buscando os 8 termos
+canônicos (e variações mapeadas) com correspondência de borda de
+palavra. Uma linha só conta como predição positiva se NÃO contiver
+nenhum marcador de negação de uma lista auditada e corrigida ao longo
+do trabalho ("ausente", "descartado", "negativo", "não confirmado",
+"nega", "NR", entre outros).
+
+Uma exceção foi adicionada depois de uma auditoria de falsos negativos:
+menções a "carga viral negativa/indetectável" (PCR-HBV, HBV-DNA) NÃO
+são tratadas como negação da doença — são marcador de tratamento
+supressor bem-sucedido num paciente já diagnosticado com hepatite B
+crônica (a terapia de hepatite B é supressora, não curativa; o paciente
+continua tendo a doença mesmo com carga viral indetectável). Essa
+mesma exceção não se aplica à hepatite C: tratamento com antivirais de
+ação direta é frequentemente curativo, então "PCR-HCV negativo após
+tratamento" costuma indicar doença genuinamente resolvida — aplicar a
+mesma exceção ali produzia falsos positivos, confirmado em teste antes
+de restringir a correção especificamente à hepatite B.
+
+
+10. MÉTRICAS DE AVALIAÇÃO
+================================================================================
+
+Por classe, foram computados TP/FP/FN/TN e, a partir deles, precisão
+(TP/(TP+FP)), recall (TP/(TP+FN)) e F1 (média harmônica dos dois). Essas
+métricas foram agregadas de duas formas — macro (média simples entre as
+8 classes, tratando-as com peso igual independente de prevalência) e
+micro (TP/FP/FN somados entre classes antes da divisão, ponderando
+implicitamente pela frequência de cada classe) — e complementadas por:
+
+  - exact-match accuracy (subset accuracy): proporção de pacientes em
+    que o conjunto PREVISTO é idêntico ao conjunto REAL, todas as 8
+    doenças corretas simultaneamente — a métrica mais rigorosa do
+    trabalho, já que um único erro em qualquer uma das 8 classes
+    invalida o acerto do paciente inteiro.
+  - acurácia por rótulo: (TP+TN)/(TP+TN+FP+FN), contando cada
+    combinação paciente × doença como um acerto/erro binário
+    independente. Essa métrica é reportada com uma ressalva
+    metodológica explícita: como a maioria das combinações
+    paciente-doença é negativa (um paciente tem, em média, 1,49 das 8
+    doenças), ela é inflacionada por verdadeiros negativos triviais e
+    não deve ser lida isoladamente como medida de qualidade.
+  - matrizes de confusão 2×2 por doença e por sistema, visualizadas em
+    matplotlib, para leitura rápida de qual classe concentra os erros
+    de cada configuração.
+
+
+11. ANÁLISE DE ERROS: POR QUE O DRIFT SE COMPORTA DIFERENTE
+================================================================================
+
+11.1 O padrão agregado
+
+Comparando os 8 sistemas, emerge um padrão sistemático: `drift` (S7/S8)
+tem recall muito mais alto que `basic`/`local` (S1-S4) — cerca de 95%
+contra 60-67% — às custas de precisão mais baixa — cerca de 65-76%
+contra 78-86%. Esse padrão motivou uma investigação dedicada sobre o
+mecanismo por trás dele.
+
+11.2 Hipóteses testadas estatisticamente
+
+Para isolar o mecanismo, foram comparados dois grupos de pares
+(prontuário, doença real): o grupo A reúne os casos em que o `drift`
+acerta e a maioria dos sistemas `basic`/`local` erra; o grupo B reúne
+todos os demais casos positivos reais, como controle. Quatro hipóteses
+foram testadas (scipy.stats), cada uma com um teste estatístico formal:
+
+  H1 — prontuários do grupo A são mais LONGOS (teste de Mann-Whitney U,
+       não-paramétrico): CONFIRMADA, p < 0,001. Mediana de 6.160
+       caracteres no grupo A contra 3.230 no grupo B — quase o dobro.
+
+  H2 — o termo literal da doença aparece MENOS no texto do grupo A
+       (qui-quadrado de proporções): CONFIRMADA, p < 0,001. O termo
+       literal (ex.: a palavra "cirrose") está presente em 69,4% dos
+       casos do grupo A contra 89,4% no grupo B — ou seja, o `drift`
+       ganha desproporcionalmente mais em casos que exigem inferência
+       a partir de evidência indireta (achados de imagem, sinônimos
+       clínicos, jargão de prontuário) em vez de leitura literal.
+
+  H3 — prontuários do grupo A têm MAIS atendimentos/visitas registradas
+       (Mann-Whitney U): REFUTADA, p = 0,21. A mediana é idêntica nos
+       dois grupos (2 atendimentos) — não é o número de visitas que
+       importa, é a densidade de informação dentro do texto, não a sua
+       fragmentação em registros.
+
+  H4 — a entidade canônica da doença nunca foi extraída na indexação
+       pro paciente do grupo A (qui-quadrado): REFUTADA, p = 0,89. Um
+       caso individual investigado em profundidade (análise do subgrafo
+       de entidades e comunidades de um paciente específico) mostrava
+       exatamente esse padrão — mas, testado contra a amostra inteira,
+       NÃO generaliza: a proporção de entidades ausentes é praticamente
+       idêntica nos dois grupos (46,6% contra 45,7%). Esse resultado é
+       metodologicamente importante por si: demonstra que um mecanismo
+       plausível e bem documentado num estudo de caso pode não se
+       sustentar estatisticamente em escala, reforçando a necessidade
+       de validar qualquer hipótese qualitativa com teste formal antes
+       de generalizá-la.
+
+11.3 Três categorias de doença, segundo o trade-off observado
+
+Decompondo o ganho de recall e o custo de precisão do `drift` por
+doença, e correlacionando com a proporção de casos em que o termo
+literal está presente no texto, emergem três grupos distintos:
+
+  - Marcador binário claro (hepatite B, hepatite C, esteatose
+    hepática): termo literal presente em 85-95% dos casos reais; gap de
+    recall e de precisão pequenos nos dois sentidos — não há trade-off
+    real, o `drift` simplesmente ganha, sem custo relevante. A hepatite
+    C é o único caso em que o `drift` supera `basic`/`local` também em
+    precisão (+5,1 pontos).
+
+  - Inferência indireta genuína (cirrose hepática, hipertensão portal,
+    esquistossomose): termo literal presente em 63-88% dos casos reais
+    (cirrose é a mais baixa, 63,2%); ganho de recall grande (44 a 53
+    pontos) com custo de precisão proporcionalmente menor (5 a 17
+    pontos) — o trade-off é real, mas favorável ao `drift`: é o preço
+    estrutural aceitável de um método que consegue conectar evidência
+    dispersa.
+
+  - Exceção isolada (hemorragia digestiva alta): termo literal presente
+    em 88,9% dos casos — no mesmo patamar do grupo "binário" — e, ainda
+    assim, o maior custo de precisão de todos os oito (-35 pontos). A
+    causa aqui não é indiretude de evidência, é confusão clínica
+    específica (sangramento baixo confundido com alto), identificada
+    na leitura qualitativa de casos individuais. Por não depender de
+    inferência, é, em princípio, corrigível por ajuste de prompt — ao
+    contrário do trade-off estrutural das outras duas categorias.
+
+11.4 Tentativa de validação empírica do ajuste de prompt para HDA
+
+Foi tentada uma validação direta: reexecutar o `drift`, com a versão 3
+do prompt (que já inclui a distinção anatômica explícita), sobre uma
+amostra de pacientes que tinham gerado falso positivo de HDA na versão
+anterior do prompt — mesmo modelo e mesma configuração do run original,
+variável isolada = só o prompt. O teste ficou INCONCLUSIVO: os 4
+primeiros pacientes processados bateram o teto de tempo de 45 minutos
+sem completar, por instabilidade de infraestrutura do modelo de
+raciocínio via OpenRouter — não por falha da hipótese em si. A hipótese
+qualitativa permanece como explicação mais plausível para o padrão
+observado em HDA, mas sem confirmação empírica direta de que o ajuste
+de prompt a corrige.
+
+
+12. ANÁLISE VISUAL DO GRAFO DE CONHECIMENTO
+================================================================================
+
+Como material de apoio à investigação qualitativa dos erros, foram
+gerados subgrafos de entidades e relações por paciente (NetworkX e
+matplotlib, layout de força dirigida de Fruchterman-Reingold), coloridos
+por comunidade — usados para ilustrar mecanismos de erro específicos,
+como uma entidade sinônima de uma doença caindo numa comunidade
+diferente da entidade "correta" do mesmo paciente. Esse processo foi
+depois generalizado para todos os 537 prontuários (uma imagem por
+paciente), complementado por uma comparação visual dos seis maiores
+subgrafos da amostra e por uma análise estrutural agregada da
+distribuição de entidades, relações e comunidades por prontuário.
+
+
+13. LIMITAÇÕES METODOLÓGICAS DECLARADAS
+================================================================================
+
+  - O modelo de raciocínio usado (ling-3.0-flash) introduz alta
+    variância de latência e custo, o que compromete reprodutibilidade
+    de tempo de execução e, em pelo menos um caso concreto, inviabilizou
+    uma validação experimental planejada dentro de prazo razoável.
+  - PBE tem apenas 2 casos positivos em toda a amostra — insuficiente
+    para qualquer métrica estatisticamente confiável sobre essa classe.
+  - O ground truth por "segunda opinião" pode conter discordâncias
+    pontuais não resolvidas: em ao menos um caso identificado durante a
+    correção do parser de negação, a predição do modelo parecia
+    clinicamente mais correta que o próprio rótulo de referência.
+  - Os sistemas `global` (S5 e S6) não foram concluídos de forma
+    confiável no modelo atual: o mecanismo de seleção dinâmica de
+    comunidades pode gerar um volume de chamadas desproporcional (até
+    cerca de 547 por consulta, no pior caso) quando o nível inicial da
+    hierarquia não encontra nada relevante e recorre ao nível seguinte
+    por completo; tentativas de ajustar os parâmetros desse mecanismo
+    não resolveram o problema sem custo relevante de qualidade.
+  - A amostra de 537 prontuários é enriquecida por triagem textual, não
+    aleatória — a prevalência das 8 classes nela não deve ser lida como
+    estimativa epidemiológica da população geral do ambulatório.

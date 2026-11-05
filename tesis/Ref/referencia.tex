@@ -1,7 +1,9 @@
 \label{sec:sampleReferences}
 
-% Mostra todas as entradas do .bib mesmo que não tenham sido citadas
-\nocite{*}
+% \bibliography (natbib/BibTeX) já imprime a bibliografia neste ponto do documento --
+% \printbibliography é um comando do biblatex, pacote nunca carregado aqui (só natbib,
+% ver main.tex). Misturar os dois gerava "Undefined control sequence" no fim do
+% documento. Corrigido em 2026-11-02.
+% \nocite{*} também foi removido: listava no PDF final toda entrada do .bib, mesmo as
+% não citadas no texto -- mantenha-o comentado a menos que isso seja intencional.
 \bibliography{Ref/SampleReferences} % arquivo .bib
-% Imprime a bibliografia
-\printbibliography

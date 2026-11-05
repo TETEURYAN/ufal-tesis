@@ -13,8 +13,8 @@ Nos últimos anos, técnicas de Retrieval-Augmented Generation (RAG)\citep{gao20
  Nesse contexto, o principal objetivo deste trabalho é desenvolver e avaliar uma abordagem baseada em GraphRAG para a extração e o monitoramento de informações clínicas em prontuários eletrônicos de pacientes hepatopatas, buscando responder aos seguintes questionamentos:
 
 \begin{enumerate}
-    \item Como a aplicação da sumarização de contexto pode melhorar a análise de informações clínicas relevantes em prontuários eletrônicos de pacientes hepatopatas? 
-    \item Em que medida a modelagem temporal com GraphRAG permite identificar padrões evolutivos significativos na progressão das doenças hepáticas?  
+    \item Como a aplicação da sumarização de contexto pode melhorar a análise de informações clínicas relevantes em prontuários eletrônicos de pacientes hepatopatas?
+    \item Em que medida o modo de busca do GraphRAG e o nível de granularidade da detecção de comunidades influenciam a identificação correta das doenças hepáticas documentadas no prontuário?
     \item Quais são as limitações e desafios na integração de GraphRAG com dados clínicos não estruturados em termos de acurácia e relevância das informações extraídas?
 \end{enumerate}
 
@@ -23,19 +23,25 @@ Nos últimos anos, técnicas de Retrieval-Augmented Generation (RAG)\citep{gao20
 Para atingir o objetivo geral, este trabalho se propõe a:
 
 \begin{enumerate}
-    \item Realizar o pré-processamento e a anonimização das evoluções clínicas de pacientes hepáticos, aplicando técnicas de reconhecimento de entidades nomeadas;
-    
-    \item Estruturar a base textual em blocos semânticos (\textit{text chunks}) para posterior análise com modelos de linguagem de grande porte (\texttt{LLMs});
-    
-    \item Extrair as relações das entidades coletadas para construção do Kg;
-    
-    \item Calcular métricas estatísticas e descritivas da base de dados com apoio de técnicas como \texttt{TF-IDF} e \texttt{t-SNE};
-    
-    \item Desenvolver e aplicar prompts específicos para consultas semânticas, permitindo ao \texttt{LLM} sumarizar informações distribuídas em múltiplos blocos e gerar respostas globais contextualizadas a partir do \texttt{KG};
-    
-    \item Avaliar o desempenho da abordagem proposta quanto à precisão das extrações, relevância das respostas e qualidade da sumarização, comparando os resultados obtidos com diferentes estratégias de segmentação e de agrupamento de entidades.
-    
+    \item Construir um conjunto de prontuários rotulado para as oito doenças hepáticas de interesse, por meio de um funil de triagem textual, triagem por LLM e anotação manual por especialista;
+
+    \item Indexar o corpus com o GraphRAG, com ajuste do \textit{prompt} de extração de entidades e relações ao domínio da hepatologia, e construir a hierarquia de comunidades pelo algoritmo de Leiden;
+
+    \item Desenvolver e refinar, ao longo de versões sucessivas, o \textit{prompt} de consulta que extrai da resposta do modelo as doenças hepáticas documentadas em cada prontuário;
+
+    \item Avaliar sistematicamente os quatro modos de busca do GraphRAG (\textit{basic}, \textit{local}, \textit{global} e \textit{drift}) em dois níveis de comunidade, por meio de métricas de classificação multirrótulo e testes estatísticos, contra o \textit{ground truth} anotado;
+
+    \item Investigar, por meio de testes estatísticos e análise qualitativa, os mecanismos que explicam os casos de acerto e de erro de cada modo de busca, em particular do modo \textit{drift}.
+
 \end{enumerate}
+
+\section{Relevância do Trabalho}\label{sec:relevancia}
+
+As doenças hepáticas representam uma significativa carga global de saúde, sendo responsáveis por elevado número de internações, complicações graves e mortalidade, a literatura aponta para a necessidade de transição da prática tradicional para a medicina de precisão em hepatologia, graças ao volume crescente de dados clínicos, laboratoriais, de imagem e genômicos disponíveis \citep{SABRIE2023350}. No Brasil, a mortalidade por hepatites crônicas aumentou em algumas regiões (Norte e Nordeste) enquanto outras formas de hepatite apresentaram tendência de queda entre 2001 e 2020, reforçando a urgência de ferramentas de monitoramento de evolução clínica \citep{sousa2023}.
+
+Em paralelo, os prontuários eletrônicos e notas clínico-assistenciais contêm riqueza de dados em texto livre, que até o momento permanecem subutilizados devido à complexidade do processamento linguístico, revisões recentes em hepatologia e gastroenterologia ressaltam que o PLN já consegue extrair informações úteis desses textos, mas ainda padece de limitações como falta de generalização, baixa explicabilidade, escassez de integração temporal e escopo restrito \citep{omar2025}.
+
+Nesse cenário, a combinação de PLN com grafos de conhecimento e modelos de recuperação assistida, como a abordagem GraphRAG, surge como uma oportunidade inovadora para capturar relações complexas entre entidades clínicas e permitir consultas mais ricas e estruturadas, algo ainda raro no contexto de hepatologia \citep{stammers2025}. Portanto, este trabalho se mostra relevante ao propor uma solução que aborda duas lacunas principais: (1) a extração inteligente de dados textuais não estruturados em hepatopatias, e (2) o uso de grafos de conhecimento para dar sentido e facilitar a exploração dessas informações por clínicos, pesquisadores e gestores. Essa relevância é tanto prática, ao contribuir para a melhoria no acompanhamento, prognóstico e tratamento de pacientes com doenças hepáticas, quanto metodológica, ao aplicar técnicas de ponta em PLN e grafos de conhecimento num domínio ainda pouco explorado.
 
 % -----------------------------
 % Bibliografia

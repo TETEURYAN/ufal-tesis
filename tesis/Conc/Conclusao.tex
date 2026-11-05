@@ -1,1 +1,35 @@
-\chapter{Conclusão}\label{sec:conclusao}
+\chapter{Conclusão}\label{cap:conclusao}
+
+Este trabalho avaliou o GraphRAG como abordagem para a identificação de doenças hepáticas em prontuários eletrônicos reais, escritos em português brasileiro, no ambulatório de hepatologia do Hospital Universitário da Universidade Federal de Alagoas. A avaliação comparou quatro modos de busca do Microsoft GraphRAG (\textit{basic}, \textit{local}, \textit{global} e \textit{drift}), em dois níveis de granularidade da hierarquia de comunidades, sobre uma amostra de 537 prontuários com rótulo de referência anotado por especialista, para oito doenças hepáticas de interesse clínico. Até onde os trabalhos revisados no Capítulo~\ref{cap:relacionados} permitem afirmar, esta é a primeira avaliação do GraphRAG sobre prontuários clínicos reais em português brasileiro com esse desenho: \textit{ground truth} humano, comparação sistemática entre modos de busca e níveis de comunidade, e investigação estatística dos mecanismos de acerto e erro.
+
+O resultado central é que o modo \textit{drift} obtém o maior F1 macro entre os sistemas comparáveis, mas esse ganho não decorre de maior exatidão: decorre de uma revocação substancialmente mais alta, da ordem de 95\% contra 60\% a 67\% dos demais modos, obtida ao custo de uma precisão inferior. Essa troca não se distribui igualmente entre as oito doenças. Nas condições que exigem inferência a partir de evidência dispersa no texto, como cirrose hepática e hipertensão portal, o \textit{drift} supera o modo \textit{basic} por margens expressivas, de quase 20 pontos de F1. Nas condições com marcador textual direto, como esteatose hepática e hepatite C, o ganho é pequeno, por efeito de teto; na hepatite B e, de forma mais acentuada, na hemorragia digestiva alta, o \textit{drift} sequer supera os modos mais simples, e análises estatísticas dirigidas confirmaram um mecanismo concreto de confusão anatômica entre sangramento alto e baixo como explicação para esse último caso. Quanto à granularidade da hierarquia de comunidades, o teste de McNemar exato não encontrou diferença estatisticamente significativa entre os dois níveis avaliados, em nenhum dos modos de busca comparáveis, o que indica que essa escolha de projeto é, dentro da faixa testada, menos determinante para o desempenho do que a escolha do modo de busca em si.
+
+Esses achados respondem à pergunta de pesquisa enunciada no Capítulo~\ref{cap:introducao} de forma que qualifica, mais do que confirma, a expectativa inicial de que um modo de busca mais elaborado produziria resultados uniformemente melhores. O GraphRAG, e em particular o modo \textit{drift}, mostra-se mais adequado quanto mais indireta for a evidência que sustenta o diagnóstico, e menos vantajoso, podendo até ser contraproducente, quando a doença já possui um marcador textual objetivo e inequívoco. Essa qualificação tem valor prático direto para quem for aplicar GraphRAG a tarefas semelhantes de extração clínica: a escolha do modo de busca deve ser orientada pela natureza da evidência textual disponível para cada classe, e não assumida de forma genérica a partir do desempenho agregado de um único sistema.
+
+\section{Contribuições}\label{sec:conc-contribuicoes}
+
+As principais contribuições deste trabalho são:
+
+\begin{itemize}
+    \item uma avaliação sistemática do Microsoft GraphRAG sobre prontuários clínicos reais em português brasileiro, com \textit{ground truth} anotado por especialista, preenchendo uma lacuna identificada na revisão de trabalhos relacionados (Capítulo~\ref{cap:relacionados});
+    \item um funil de construção de amostra e de rótulos de referência, por triagem textual, triagem por LLM e anotação manual, que torna viável avaliar oito classes com prevalência desigual sem recorrer a uma amostra aleatória simples;
+    \item a caracterização estatística, por meio dos testes de McNemar, U de Mann-Whitney e qui-quadrado, dos mecanismos que explicam tanto os casos em que o modo \textit{drift} acerta onde os demais erram quanto o inverso, confirmando formalmente, entre outros achados, a confusão anatômica entre hemorragia digestiva alta e sangramento baixo;
+    \item uma taxonomia qualitativa dos padrões de erro do \textit{drift}, com casos concretos de negação textual ignorada, confusão entre diagnóstico de familiar e do próprio paciente, confusão entre marcador de imunidade vacinal e infecção ativa, e ao menos um caso de citação de resultado de exame inexistente no texto-fonte;
+    \item um conjunto de \textit{scripts} e um \textit{pipeline} de avaliação reutilizáveis, que cobrem desde a triagem da amostra até a análise estatística e qualitativa dos resultados, disponíveis para extensão em trabalhos futuros no mesmo domínio.
+\end{itemize}
+
+\section{Limitações}\label{sec:conc-limitacoes}
+
+Os resultados devem ser interpretados à luz das limitações detalhadas na Seção~\ref{sec:met-limitacoes}. Em síntese, destacam-se: a variância de latência e de custo introduzida pelo modelo de raciocínio híbrido utilizado na tentativa de validação do \textit{prompt} reforçado para hemorragia digestiva alta, que impediu a conclusão dessa validação dentro de prazo razoável; a insuficiência estatística da classe de peritonite bacteriana espontânea, com apenas dois casos positivos na amostra; o caráter não aleatório da amostra, enriquecida por triagem textual, que impede a leitura da prevalência observada como estimativa epidemiológica; e a impossibilidade de concluir, com o modelo adotado, uma avaliação confiável dos sistemas do modo \textit{global}.
+
+\section{Trabalhos Futuros}\label{sec:conc-futuros}
+
+A partir dos resultados e das limitações identificadas, propõem-se as seguintes direções para trabalhos futuros:
+
+\begin{itemize}
+    \item concluir a validação do \textit{prompt} reforçado para hemorragia digestiva alta (Seção~\ref{sec:res-validacao-hda}), hoje inconclusiva por limitações de infraestrutura, preferencialmente sobre um modelo de linguagem sem o custo de latência observado no modelo de raciocínio híbrido utilizado neste trabalho;
+    \item avaliar os sistemas do modo \textit{global} (S5 e S6) com um modelo ou uma configuração que não incorra no volume excessivo de chamadas observado na seleção dinâmica de comunidades, de modo a completar a comparação entre os quatro modos de busca do GraphRAG;
+    \item investigar correções específicas para os falsos positivos de hepatite B e hepatite C descritos na Seção~\ref{sec:res-investigacao-erro}, como regras explícitas de distinção entre marcadores de imunidade vacinal e de infecção ativa, e de tratamento de doença resolvida após terapia antiviral;
+    \item estender a avaliação a um segundo anotador humano, de modo a medir a concordância entre anotadores e fortalecer a confiabilidade do \textit{ground truth} para além da anotação única adotada neste trabalho;
+    \item replicar o desenho experimental sobre um corpus de outra instituição ou especialidade clínica, para avaliar em que medida os padrões de acerto e erro aqui identificados são específicos deste ambulatório ou generalizáveis a outros contextos de texto clínico em português.
+\end{itemize}

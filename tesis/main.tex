@@ -13,6 +13,7 @@
 \usepackage{booktabs}
 \usepackage{indentfirst}
 \usepackage{float}
+\usepackage{tcolorbox}
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows,arrows.meta,shapes.geometric,fit,backgrounds,calc}
 \usepackage{pgfplots}
@@ -32,20 +33,22 @@
   },
 }
 
-\usepackage[utf8]{inputenc}
-\usepackage[T1]{fontenc}
-\usepackage[brazil]{babel}
-% \usepackage{natbib}
-
-% \bibliographystyle{plainnat} % estilo com [Autor et al., Ano]
-
-\usepackage[utf8]{inputenc}
-\usepackage{natbib} % para citações [Autor et al., Ano]
-% \bibliographystyle{plainnat} % define o estilo das referências
+% utf8/T1/babel já são carregados pela classe JITH (ver JITH.cls) -- carregá-los de
+% novo aqui causava "Option clash for package babel" e impedia a compilação do
+% documento inteiro, o que por sua vez deixava Lista de Figuras/Lista de Tabelas
+% (geradas a partir do .aux/.lof/.lot de uma compilação completa anterior) vazias
+% ou desatualizadas nas páginas iniciais. Corrigido em 2026-11-02.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % Pacotes adicionados % % % % % % % % % % % % % % % %
 % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% tcolorbox carrega verbatim internamente, que já define \comment (do ambiente
+% "comment") -- isso colidia com a própria macro \comment do easyReview logo
+% abaixo ("Command \comment already defined"). O ambiente comment do verbatim
+% não é usado neste documento, então é seguro desfazer sua definição aqui.
+% Corrigido em 2026-11-02.
+\let\comment\relax
+\let\endcomment\relax
 \usepackage{easyReview} %%para revisoes
 \setreviewson
 %%how to:
@@ -88,11 +91,11 @@
 % \abstract
 % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% \listoffigures
-% \cleardoublepage
+\listoffigures
+\cleardoublepage
 % % % % % % % % % % % % % % % % %
-% \listoftables
-% \cleardoublepage
+\listoftables
+\cleardoublepage
 % \simbolos
 % \cleardoublepage
 \abreviaturas
@@ -115,26 +118,20 @@
 \input{Cap01/Capitulo1}
 \cleardoublepage
 % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\input{Cap02/FundamentacaoTeorica}
-\cleardoublepage
-% % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{Cap02/Capitulo2}
 \cleardoublepage
 % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\input{Cap03/Capitulo3}
+\input{Cap03/FundamentacaoTeorica}
 \cleardoublepage
 % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{Cap04/Capitulo4}
 \cleardoublepage
 % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% %\input{Cap05/Capitulo5}
-% %\cleardoublepage
+\input{Cap05/Capitulo5}
+\cleardoublepage
 % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% %\input{Cap06/Capitulo6}
-% %\cleardoublepage
-% %%% % % % % % % % % % % % % % % % % % % % % % % % % % %
-% \input{Conc/Conclusao.tex}
-% \cleardoublepage
+\input{Conc/Conclusao.tex}
+\cleardoublepage
 %%% % % % % % % % % % % % % % % % % % % % % % % % % % %
 %%% % % % % % % % % % % % % % % % % % % % % % % % % % %
 % \markright{Bibliography}

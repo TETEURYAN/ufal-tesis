@@ -1,0 +1,257 @@
+\chapter{Resultados e discussão}\label{cap:resultados}
+
+Este capítulo apresenta os resultados da avaliação descrita no Capítulo~\ref{cap:metodologia}, na mesma ordem em que os métodos foram apresentados: primeiro o panorama agregado entre os seis sistemas comparáveis (\textit{basic}, \textit{local} e \textit{drift}, nos níveis de comunidade 1 e 2), depois a comparação entre níveis pelo teste de McNemar, em seguida o desempenho por doença, a investigação dirigida ao comportamento do modo \textit{drift} nas duas direções de erro, a análise qualitativa de grafos e, por fim, a tentativa de validação da versão 3 do \textit{prompt} para hemorragia digestiva alta (HDA). Os sistemas S5 e S6 (modo \textit{global}) não constam das comparações por não terem sido concluídos de forma confiável, pelos motivos expostos na Seção~\ref{sec:met-limitacoes}.
+
+\section{Panorama agregado}\label{sec:res-panorama}
+
+A Tabela~\ref{tab:res-metricas-gerais} reúne as métricas agregadas dos seis sistemas avaliados. O modo \textit{drift} (S7 e S8) obtém o maior F1 macro entre os seis sistemas, com destaque para S8 (nível de comunidade 2), que alcança 0,798 contra 0,745 de S7 (nível 1). Os modos \textit{basic} e \textit{local} apresentam F1 macro entre 0,681 e 0,743, inferior ao do \textit{drift} em todas as quatro configurações.
+
+\begin{table}[!htbp]
+\centering
+\caption{Métricas agregadas dos seis sistemas avaliados sobre os 537 prontuários (531 para S8, conforme a Seção~\ref{sec:met-mcnemar}).}
+\label{tab:res-metricas-gerais}
+\begin{tabular}{lccccccc}
+\toprule
+Sistema & Modo & Nível & EM & P$_{\text{macro}}$ & R$_{\text{macro}}$ & F1$_{\text{macro}}$ & F1$_{\text{micro}}$ \\
+\midrule
+S1 & \textit{basic} & 1 & 0,575 & 0,783 & 0,613 & 0,681 & 0,738 \\
+S2 & \textit{basic} & 2 & 0,566 & 0,852 & 0,592 & 0,689 & 0,721 \\
+S3 & \textit{local} & 1 & 0,581 & 0,858 & 0,635 & 0,718 & 0,750 \\
+S4 & \textit{local} & 2 & 0,587 & 0,858 & 0,672 & 0,743 & 0,739 \\
+S7 & \textit{drift}  & 1 & 0,596 & 0,648 & 0,946 & 0,745 & 0,825 \\
+S8 & \textit{drift}  & 2 & 0,625 & 0,707 & 0,948 & 0,798 & 0,850 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}. EM: acurácia de correspondência exata; P, R: precisão e revocação.}
+\end{table}
+
+O padrão mais relevante da Tabela~\ref{tab:res-metricas-gerais} é a assimetria entre precisão e revocação no modo \textit{drift}: revocação macro de 94,6\% (S7) e 94,8\% (S8), contra 59,2\% a 67,2\% em \textit{basic} e \textit{local}, ao custo de precisão macro de 64,8\% a 70,7\%, inferior aos 78,3\% a 85,8\% dos demais modos. A Figura~\ref{fig:res-f1-sistemas} ilustra essa troca: o F1 macro mais alto do \textit{drift} é sustentado por uma cobertura muito superior, e não por acertos mais seletivos.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar, bar width=14pt, width=0.95\textwidth, height=6.5cm,
+    symbolic x coords={S1,S2,S3,S4,S7,S8},
+    xtick=data, ymin=0, ymax=1,
+    ylabel={Valor da métrica},
+    legend style={at={(0.5,-0.18)}, anchor=north, legend columns=3},
+    ymajorgrids, grid style={gray!25},
+    nodes near coords, nodes near coords style={font=\tiny},
+    every node near coord/.append style={rotate=90, anchor=west},
+]
+\addplot[fill=blue!55] coordinates {(S1,0.783) (S2,0.852) (S3,0.858) (S4,0.858) (S7,0.648) (S8,0.707)};
+\addplot[fill=orange!70] coordinates {(S1,0.613) (S2,0.592) (S3,0.635) (S4,0.672) (S7,0.946) (S8,0.948)};
+\addplot[fill=ForestGreen!70] coordinates {(S1,0.681) (S2,0.689) (S3,0.718) (S4,0.743) (S7,0.745) (S8,0.798)};
+\legend{Precisão macro, Revocação macro, F1 macro}
+\end{axis}
+\end{tikzpicture}
+\caption{Precisão, revocação e F1 macro por sistema. Os sistemas \textit{drift} (S7, S8) obtêm maior F1 pela revocação muito mais alta, não por precisão superior.}
+\label{fig:res-f1-sistemas}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}.}
+\end{figure}
+
+\section{Comparação entre níveis de comunidade}\label{sec:res-mcnemar}
+
+A Tabela~\ref{tab:res-mcnemar} apresenta o resultado do teste de McNemar exato (Seção~\ref{sec:met-mcnemar}) para os três modos de busca efetivamente comparados. Em nenhum dos três o p-valor é inferior ao nível de significância de 5\%, de modo que não há evidência estatística de diferença entre os níveis 1 e 2 em nenhum modo, incluindo o \textit{drift}, cujo p-valor de 0,118 é o mais próximo do limiar, favorecendo o nível 2. Esse resultado confirma, a posteriori, a decisão metodológica de manter os dois níveis no desenho experimental em vez de escolher um único valor \textit{a priori}.
+% TODO: valor de n=531 no McNemar do drift carece de explicação (ver TODO 5 do Cap. 3).
+
+\begin{table}[!htbp]
+\centering
+\caption{Teste de McNemar exato entre os níveis de comunidade 1 e 2, por modo de busca, sobre a acurácia de correspondência exata.}
+\label{tab:res-mcnemar}
+\begin{tabular}{lcccc}
+\toprule
+Modo & $n$ & $b$ (só nível 1) & $c$ (só nível 2) & $p$-valor \\
+\midrule
+\textit{basic} & 537 & 45 & 40 & 0,665 \\
+\textit{local} & 537 & 44 & 47 & 0,834 \\
+\textit{drift} & 531 & 44 & 61 & 0,118 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor. Nenhuma diferença é estatisticamente significativa ($\alpha = 0{,}05$).}
+\end{table}
+
+\section{Desempenho por doença}\label{sec:res-por-doenca}
+
+A Figura~\ref{fig:res-f1-doenca} compara o F1 por doença entre S1 (\textit{basic}, referência sem uso estruturado do grafo), S3 (\textit{local}) e S7 (\textit{drift}), os três sistemas de nível 1. O padrão confirma, com ressalvas, a distinção introduzida na Seção~\ref{sec:met-hipoteses} entre doenças de marcador binário claro e doenças de inferência indireta. Em cirrose hepática e hipertensão portal -- doenças que dependem de inferência a partir de múltiplos achados dispersos no texto --, o ganho do \textit{drift} sobre o \textit{basic} é grande: 18,1 e 19,7 pontos de F1, respectivamente. Em esteatose hepática e hepatite C, cujo texto costuma registrar um exame ou laudo objetivo, o ganho é menor, por efeito-teto (o \textit{basic} já desempenha bem nessas classes): 5,4 e 9,0 pontos. Dois casos escapam ao padrão simples. A esquistossomose, apesar de também depender de inferência indireta, tem ganho modesto (5,0 pontos), semelhante ao das doenças de marcador direto. Já a hepatite B é o único caso em que o \textit{drift} não supera o \textit{basic}: o F1 é ligeiramente menor (0,851 contra 0,864), uma diferença pequena, mas que contraria a expectativa de ganho uniforme do \textit{drift} sobre doenças com marcador objetivo. A hemorragia digestiva alta (HDA) permanece a exceção mais clara ao padrão geral: apesar de o termo literal estar presente na maior parte dos prontuários positivos, o \textit{drift} (F1 = 0,457) não supera o \textit{local} (F1 = 0,485) nessa classe, consistente com o mecanismo de confusão anatômica investigado e estatisticamente confirmado na Seção~\ref{sec:res-investigacao-erro}.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar, bar width=6pt, width=\textwidth, height=7.5cm,
+    symbolic x coords={Cirrose,Esquisto.,Hep.\,C,Hep.\,B,Esteatose,HP,HDA},
+    xtick=data, x tick label style={rotate=20, anchor=east, font=\footnotesize},
+    ymin=0, ymax=1, ylabel={F1 por classe},
+    legend style={at={(0.5,-0.28)}, anchor=north, legend columns=3},
+    ymajorgrids, grid style={gray!25},
+]
+\addplot[fill=gray!55] coordinates {
+    (Cirrose,0.627) (Esquisto.,0.691) (Hep.\,C,0.779) (Hep.\,B,0.864)
+    (Esteatose,0.882) (HP,0.700) (HDA,0.406)};
+\addplot[fill=blue!55] coordinates {
+    (Cirrose,0.602) (Esquisto.,0.735) (Hep.\,C,0.782) (Hep.\,B,0.882)
+    (Esteatose,0.869) (HP,0.726) (HDA,0.485)};
+\addplot[fill=orange!70] coordinates {
+    (Cirrose,0.808) (Esquisto.,0.741) (Hep.\,C,0.869) (Hep.\,B,0.851)
+    (Esteatose,0.936) (HP,0.897) (HDA,0.457)};
+\legend{S1 (\textit{basic}), S3 (\textit{local}), S7 (\textit{drift})}
+\end{axis}
+\end{tikzpicture}
+\caption{F1 por doença nos três sistemas de nível 1.}
+\label{fig:res-f1-doenca}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}.}
+\end{figure}
+
+As matrizes de confusão por doença (Figuras~\ref{fig:res-confusao-s7} e~\ref{fig:res-confusao-s8}) detalham essa distribuição para o modo \textit{drift}, permitindo identificar em qual direção -- falso positivo ou falso negativo -- se concentra o erro de cada classe.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{Cap05/figuras/matriz_confusao_S7.png}
+\caption{Matrizes de confusão por doença, sistema S7 (\textit{drift}, nível 1).}
+\label{fig:res-confusao-s7}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com a biblioteca matplotlib.}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{Cap05/figuras/matriz_confusao_S8.png}
+\caption{Matrizes de confusão por doença, sistema S8 (\textit{drift}, nível 2).}
+\label{fig:res-confusao-s8}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com a biblioteca matplotlib.}
+\end{figure}
+
+\section{Investigação do comportamento do modo \textit{drift}}\label{sec:res-investigacao}
+
+Esta seção relata o resultado das duas investigações cujo desenho foi descrito na Seção~\ref{sec:met-hipoteses}: por que o \textit{drift} acerta em casos que \textit{basic}/\textit{local} erram (Seção~\ref{sec:res-investigacao-acerto}) e por que o \textit{drift} erra em casos que \textit{basic}/\textit{local} acertam (Seção~\ref{sec:res-investigacao-erro}).
+
+\subsection{Por que o \textit{drift} acerta onde os demais erram}\label{sec:res-investigacao-acerto}
+
+O grupo A reúne 206 pares paciente/doença em que o \textit{drift} identifica corretamente uma doença presente e a maioria de \textit{basic}/\textit{local} não identifica; o grupo B, de 593 pares, funciona como controle. A Tabela~\ref{tab:res-h1-h4-acerto} resume os quatro testes.
+
+\begin{table}[!htbp]
+\centering
+\caption{Resultado dos testes de hipótese para o grupo em que o \textit{drift} acerta e a maioria dos demais erra ($n_A=206$, $n_B=593$).}
+\label{tab:res-h1-h4-acerto}
+\begin{tabular}{lp{6.4cm}cc}
+\toprule
+Hipótese & Medida & $p$-valor & Resultado \\
+\midrule
+H1 & Mediana de caracteres: A = 6.160, B = 3.230 & $<0,001$ & Confirmada \\
+H2 & Termo literal no texto: A = 69,4\%, B = 89,4\% & $<0,001$ & Confirmada \\
+H3 & Mediana de atendimentos: A = 2, B = 2 & 0,211 & Refutada \\
+H4 & Entidade canônica ausente do índice: A = 46,6\%, B = 45,7\% & 0,887 & Refutada \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor, \texttt{hipoteses\_drift\_resultado.json}.}
+\end{table}
+
+Os prontuários do grupo A são significativamente mais longos (H1) e mencionam o termo literal da doença com menor frequência (H2): nesses casos, a doença precisa ser inferida a partir de evidência indireta espalhada por um texto mais extenso, exatamente a situação em que a varredura iterativa do \textit{drift} (primer e até seis buscas locais de acompanhamento, Seção~\ref{sec:met-sistemas}) tem vantagem estrutural sobre uma única passagem de \textit{basic} ou \textit{local}. O número de atendimentos (H3) não discrimina os grupos, o que indica que o efeito é de dispersão da evidência dentro do texto, e não de volume do histórico. A hipótese H4, motivada pelo estudo de caso individual do paciente 1800283 (Seção~\ref{sec:res-grafos}), não se generaliza para a amostra: a ausência da entidade canônica no índice ocorre em proporção semelhante nos dois grupos, de modo que o mecanismo de dispersão entre comunidades observado naquele caso específico não é a explicação predominante do padrão agregado.
+
+\subsection{Por que o \textit{drift} erra onde os demais acertam}\label{sec:res-investigacao-erro}
+
+O grupo A desta investigação reúne 291 pares paciente/doença em que a doença está ausente segundo o rótulo de referência, o \textit{drift} prediz presença (falso positivo) e a maioria de \textit{basic}/\textit{local} acerta a ausência; o grupo B, de 3.144 pares, é o controle (doença ausente e \textit{drift} também acerta). A Tabela~\ref{tab:res-h1-h4-erro} resume os testes.
+
+\begin{table}[!htbp]
+\centering
+\caption{Resultado dos testes de hipótese para o grupo em que o \textit{drift} erra (falso positivo) e a maioria dos demais acerta ($n_A=291$, $n_B=3144$, salvo H3, restrita a HDA).}
+\label{tab:res-h1-h4-erro}
+\begin{tabular}{lp{6.4cm}cc}
+\toprule
+Hipótese & Medida & $p$-valor & Resultado \\
+\midrule
+H1 & Linguagem de risco/hipótese na justificativa do \textit{drift}: 39/291 (13,4\%) & -- & Fraca \\
+H2 & Mediana de caracteres: A = 4.307, B = 2.818 & $<0,001$ & Confirmada \\
+H3 & Termos de sangramento baixo em FP de HDA: A = 8,7\% ($n=69$), B = 2,8\% ($n=423$) & 0,040 & Confirmada \\
+H4 & Evidência citada não verbatim no texto do paciente: 49/354 (13,8\%) & -- & Fraca \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor, \texttt{hipoteses\_drift\_erro\_resultado.json}.}
+\end{table}
+
+O comprimento do texto (H2) aparece como fator de risco em ambas as direções: prontuários mais longos favorecem tanto o acerto do \textit{drift} quando a evidência é indireta (Seção~\ref{sec:res-investigacao-acerto}) quanto o falso positivo quando a doença está de fato ausente. A interpretação mais consistente é a de que o comprimento do texto não é, isoladamente, preditor de acerto ou erro, mas um amplificador da característica central do modo \textit{drift}: quanto mais material o primer e os \textit{follow-ups} percorrem, maior a chance de encontrar tanto evidência genuína e dispersa quanto associações espúrias.
+
+A Figura~\ref{fig:res-acerto-erro-tamanho} ilustra esse padrão sobre todos os pares paciente-doença avaliados pelo \textit{drift}: a mediana de caracteres entre os erros é discretamente maior que entre os acertos, mas as duas distribuições se sobrepõem amplamente, o que reforça que o comprimento do texto atua como amplificador, não como preditor isolado.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.92\textwidth]{Cap05/figuras/grafico_acertos_erros_drift.png}
+\caption{Acerto e erro do \textit{drift} (S7 e S8) por tamanho do texto do prontuário. Cada ponto é um par paciente-doença avaliado; as linhas verticais marcam a mediana de cada grupo.}
+\label{fig:res-acerto-erro-tamanho}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
+\end{figure}
+
+A hipótese H3, específica de HDA, é a única das duas investigações a isolar estatisticamente o mecanismo da terceira categoria de doença discutida na Seção~\ref{sec:met-hipoteses}: termos de sangramento baixo (hemorroida, fissura anal, hematoquezia) aparecem em quase o triplo da proporção dos falsos positivos de HDA em comparação ao controle (8,7\% contra 2,8\%, $p=0,040$). Isso confirma estatisticamente, pela primeira vez, a hipótese qualitativa de confusão anatômica entre sangramento alto e baixo levantada durante a análise de erros (Seção~\ref{sec:met-hipoteses}) e que motivou a versão 3 do \textit{prompt} (Tabela~\ref{tab:met-prompts}).
+
+As hipóteses H1 e H4 têm suporte qualitativo, mas proporção abaixo do limiar adotado para considerá-las confirmadas (13,4\% e 13,8\%, respectivamente). Ainda assim, os casos individuais que as motivaram permanecem informativos: no paciente 890194, por exemplo, o texto afirma explicitamente ``hipertensão portal não cirrótica'', e o \textit{drift} lista cirrose mesmo com a negação textual explícita; no paciente 1028182, o sistema confunde o diagnóstico de um familiar (tio com cirrose, mencionado no histórico familiar) com o do próprio paciente, e também confunde ``varizes em membros inferiores'' (varizes de perna) com varizes esofágicas, pela recorrência da palavra ``varizes'' fora do território anatômico correto.
+
+O Quadro~\ref{quadro:negacao-ignorada} reproduz o trecho relevante do paciente 890194 lado a lado com a resposta do \textit{drift}, e o Quadro~\ref{quadro:alucinacao} faz o mesmo para um caso de hepatite B (paciente 592097, Seção~\ref{sec:res-panorama}) em que o sistema cita um resultado de exame que não existe em nenhuma parte do texto do prontuário.
+
+\begin{tcolorbox}[
+    colback=gray!5, colframe=gray!60, title={Negação explícita ignorada -- paciente 890194},
+    label=quadro:negacao-ignorada, fonttitle=\bfseries
+]
+\textbf{Trecho do prontuário:} ``Hipertensão portal não-cirrótica: esquistossomose hepatoesplênica.''
+
+\textbf{Resposta do \textit{drift} (S7):} ``Cirrose hepática: apresenta hepatomegalia, esplenectomia, sintomas de insuficiência hepática e sinais de fibrose periportal na USG.''
+\end{tcolorbox}
+
+\begin{tcolorbox}[
+    colback=gray!5, colframe=gray!60, title={Citação de exame inexistente no texto -- paciente 592097},
+    label=quadro:alucinacao, fonttitle=\bfseries
+]
+\textbf{Trecho do prontuário:} ``[...] Solicito novo laboratório, incluindo sorologias virais, IGG e cinética do ferro.'' Não há, em nenhum outro ponto do texto, menção a HBsAg ou a qualquer sorologia para hepatite B já realizada.
+
+\textbf{Resposta do \textit{drift} (S7):} ``Hepatite B: `HBsAg positivo' (sorologia 05/06/23).''
+\end{tcolorbox}
+
+\section{Análise qualitativa do grafo de conhecimento}\label{sec:res-grafos}
+
+Para ilustrar o mecanismo topológico por trás de parte dos erros do \textit{drift}, a Figura~\ref{fig:res-subgrafo-1800283} mostra o subgrafo do paciente 1800283, destacando as comunidades de nível 1 às quais suas entidades pertencem. O caso evidencia que entidades do mesmo paciente podem ser alocadas em comunidades distintas quando o agrupamento de Leiden é puramente topológico (Seção~\ref{sec:met-grafo}): uma entidade sinônima da doença-alvo, criada a partir de uma menção textual diferente da forma canônica, pode cair em uma comunidade diferente daquela que contém a entidade canônica correspondente, mesmo referindo-se ao mesmo paciente e à mesma condição clínica.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.85\textwidth]{Cap05/figuras/subgrafo_paciente_1800283_comunidades_457_460.png}
+\caption{Subgrafo do paciente 1800283, com destaque para as comunidades de nível 1 que concentram suas entidades (comunidades 457 e 460). Entidades fora dessas comunidades aparecem em cinza.}
+\label{fig:res-subgrafo-1800283}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas NetworkX e matplotlib.}
+\end{figure}
+
+A Figura~\ref{fig:res-maiores-grafos} generaliza a observação, comparando os seis maiores subgrafos entre os 537 prontuários da amostra, e a Figura~\ref{fig:res-estrutura-agregada} resume estatisticamente a estrutura dos subgrafos de todos os pacientes com dado disponível no índice (536 de 537). O número de entidades e o número de relações por prontuário são fortemente correlacionados ($r=0,959$), com mediana de 38 entidades e 81 relações por paciente, e cada paciente tem suas entidades distribuídas, em média, por comunidades que correspondem a 55\% do número de entidades -- ou seja, a fragmentação entre comunidades observada no caso do paciente 1800283 não é um evento isolado, mas uma característica estrutural recorrente do índice.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=\textwidth]{Cap05/figuras/comparacao_maiores_grafos.png}
+\caption{Comparação dos seis maiores subgrafos (por número de entidades) entre os 537 prontuários da amostra.}
+\label{fig:res-maiores-grafos}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas NetworkX e matplotlib.}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.95\textwidth]{Cap05/figuras/analise_estrutural_subgrafos.png}
+\caption{Distribuição do número de entidades, relações e comunidades distintas por prontuário, e relação entre entidades e relações.}
+\label{fig:res-estrutura-agregada}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
+\end{figure}
+
+\section{Tentativa de validação da versão 3 do \textit{prompt} para HDA}\label{sec:res-validacao-hda}
+
+Como teste direcionado da hipótese H3 da Seção~\ref{sec:res-investigacao-erro}, conduziu-se uma tentativa de validar se a versão 3 do \textit{prompt} de extração (Tabela~\ref{tab:met-prompts}), que explicita a distinção entre hemorragia digestiva alta e sangramento baixo, corrige os falsos positivos de HDA cometidos pelo \textit{drift} na rodada original (S7), mantendo fixos o modo de busca, o nível de comunidade, o modelo de linguagem e a ausência de qualquer correção de infraestrutura além da do próprio \textit{prompt}, de modo a isolar essa única variável.
+
+O teste foi conduzido sobre uma amostra de 12 prontuários com falso positivo de HDA conhecido em S7. Com um limite de 45 minutos por consulta, nenhuma das quatro primeiras consultas foi concluída dentro do prazo; com um limite de 90 minutos, em uma tentativa executada durante a madrugada, seis consultas tampouco foram concluídas. O limite foi então ampliado para 4 horas por consulta.
+% TODO: ao finalizar a redação, atualizar este parágrafo com o resultado da tentativa
+% com limite de 4 horas -- ver tcc-results-01/teste_fix_hda_drift.json. Investigação de
+% infraestrutura em 2026-10-18/19 identificou e corrigiu três causas reais de lentidão
+% no pipeline do GraphRAG (raciocínio do modelo não desligado de fato, uma checagem
+% interna do pipeline de patches lenta em disco montado via WSL, e uma consulta ao
+% banco vetorial repetida centenas de vezes em vez de uma única consulta em lote);
+% mesmo após as correções, uma execução completa do modo drift ainda não foi concluída
+% com sucesso -- atualizar esta seção assim que houver resultado definitivo.
+
+Os 12 pacientes testados concluem normalmente em todos os demais sistemas -- inclusive em S7 e S8 com o \textit{prompt} original --, o que descarta a hipótese de que se tratem de casos intrinsecamente difíceis para o modelo. A hipótese mais provável, ainda não confirmada de forma controlada, é a de que o bloco adicional da versão 3 do \textit{prompt}, mais longo, aumenta o custo agregado de raciocínio das múltiplas chamadas encadeadas do modo \textit{drift} (primer e até seis buscas locais de acompanhamento) o suficiente para empurrar o tempo total de resposta além do que os mesmos pacientes exigiam com a versão anterior, mais curta, do \textit{prompt}. Esse resultado inconclusivo é registrado como limitação da investigação qualitativa de HDA, e não como refutação da hipótese H3, que permanece estatisticamente confirmada pelo teste da Seção~\ref{sec:res-investigacao-erro}.
+
+\section{Síntese dos resultados}\label{sec:res-sintese}
+
+Em conjunto, os resultados deste capítulo sustentam três conclusões. Primeira, o modo \textit{drift} supera \textit{basic} e \textit{local} em F1 macro, mas o ganho é assimétrico: decorre de uma revocação muito mais alta, e não de maior precisão, de modo que a escolha do sistema deve considerar explicitamente essa troca, e não apenas o valor agregado de F1. Segunda, o ganho do \textit{drift} concentra-se nas doenças que exigem inferência a partir de evidência indireta e dispersa no texto (cirrose, hipertensão portal, esquistossomose), enquanto é marginal nas doenças com marcador textual direto (hepatite B, hepatite C, esteatose), por efeito-teto, e inexistente em HDA, cujo padrão de erro é qualitativamente distinto: confusão anatômica entre sangramento alto e baixo, estatisticamente confirmada. Terceira, a escolha entre os níveis de comunidade 1 e 2 não produz diferença estatisticamente significativa em nenhum dos três modos comparáveis, o que justifica, a posteriori, a decisão de avaliar ambos em vez de fixar um único nível a priori.

@@ -6,49 +6,8 @@ As seções seguem a ordem cronológica de execução do trabalho, sintetizada n
 
 \begin{figure}[!htbp]
 \centering
-\begin{tikzpicture}[
-  font=\small,
-  box/.style={draw, thick, rounded corners, align=center, text width=6.2cm,
-              minimum height=9mm, inner sep=4pt,
-              execute at begin node=\setstretch{1}},
-  dado/.style={box, fill=gray!12},
-  amostra/.style={box, fill=orange!12},
-  indice/.style={box, fill=blue!10},
-  avalia/.style={box, fill=ForestGreen!15},
-  seta/.style={-{Latex[length=2mm]}, thick}
-]
-\node[dado, text width=8cm] (corpus) at (0,0) {Corpus anonimizado\\3.757 prontuários, 6.405 atendimentos};
-
-\node[amostra] (re)  at (-3.7,-2.1) {Triagem por expressões regulares};
-\node[amostra] (llm) at (-3.7,-3.8) {Triagem por LLM};
-\node[amostra] (man) at (-3.7,-5.5) {Anotação manual};
-\node[amostra] (amo) at (-3.7,-7.2) {Amostra de 537 prontuários\\com rótulos de referência};
-
-\node[indice] (pt)  at (3.7,-2.1) {Ajuste de \textit{prompts} ao domínio};
-\node[indice] (ext) at (3.7,-3.8) {Segmentação e extração de\\entidades e relações};
-\node[indice] (lei) at (3.7,-5.5) {Comunidades hierárquicas (Leiden)\\e resumos de comunidade};
-\node[indice] (idx) at (3.7,-7.2) {Índice: 26.966 entidades,\\88.347 relações, níveis 0 a 6};
-
-\node[avalia, text width=11cm] (sis) at (0,-9.2) {Consultas com o \textit{prompt} de extração\\Sistemas S1 a S8: 4 modos de busca $\times$ níveis 1 e 2};
-\node[avalia, text width=8cm] (par) at (0,-10.8) {Extração da resposta por \textit{parser} determinístico};
-\node[avalia] (met) at (-3.7,-12.9) {Métricas de classificação\\e testes estatísticos};
-\node[avalia] (qua) at (3.7,-12.9) {Análise qualitativa de erros\\e visualização do grafo};
-
-\draw[seta] (corpus.south) -- ++(0,-0.45) -| (re.north);
-\draw[seta] (corpus.south) -- ++(0,-0.45) -| (pt.north);
-\draw[seta] (re) -- (llm);
-\draw[seta] (llm) -- (man);
-\draw[seta] (man) -- (amo);
-\draw[seta] (pt) -- (ext);
-\draw[seta] (ext) -- (lei);
-\draw[seta] (lei) -- (idx);
-\draw[seta] (amo.south) -- (amo.south |- sis.north);
-\draw[seta] (idx.south) -- (idx.south |- sis.north);
-\draw[seta] (sis) -- (par);
-\draw[seta] (par.south) -- ++(0,-0.45) -| (met.north);
-\draw[seta] (par.south) -- ++(0,-0.45) -| (qua.north);
-\end{tikzpicture}
-\caption[Visão geral do percurso metodológico]{Visão geral do percurso metodológico. O ramo da esquerda corresponde ao funil de construção da amostra e dos rótulos de referência (Seção~\ref{sec:met-amostra}); o da direita, à indexação do corpus pelo GraphRAG (Seção~\ref{sec:met-grafo}). Os dois ramos convergem nas consultas dos sistemas avaliados, cujas respostas são convertidas em classes e analisadas quantitativa e qualitativamente.}
+\resizebox{\textwidth}{!}{\input{Cap04/figuras/arquitetura_sistema.tex}}
+\caption[Arquitetura do sistema avaliado]{Arquitetura do sistema avaliado: (1) construção da amostra (Seção~\ref{sec:met-amostra}); (2) indexação pelo GraphRAG (Seção~\ref{sec:met-grafo}); (3) consulta pelos sistemas S1 a S8, com S5 e S6 esmaecidos por não terem sido concluídos (Seção~\ref{sec:met-sistemas}); e (4) extração e avaliação.}
 \label{fig:met-visao-geral}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
@@ -66,13 +25,15 @@ Essa etapa é particularmente relevante porque, nas consultas da rodada final, o
 
 \section{Definição das classes-alvo}\label{sec:met-classes}
 
-As oito classes avaliadas são cirrose hepática, esquistossomose, hepatite B, hepatite C, esteatose hepática, hipertensão portal, hemorragia digestiva alta (HDA) e peritonite bacteriana espontânea (PBE). Essas condições não foram selecionadas por critério estatístico nem descobertas de forma exploratória no texto: foram definidas \textit{a priori} por uma profissional de hepatologia, com base em sua relevância clínica no contexto do ambulatório de origem dos dados. Como discutido na Seção~\ref{sec:estrutura-causal}, as oito condições guardam relações causais entre si, e um mesmo paciente pode apresentar várias delas simultaneamente, razão pela qual a tarefa foi formulada como classificação multirrótulo.
+As oito classes avaliadas são cirrose hepática, esquistossomose, hepatite B, hepatite C, esteatose hepática, hipertensão portal, hemorragia digestiva alta (HDA) e peritonite bacteriana espontânea (PBE). Essas condições não foram selecionadas por critério estatístico nem descobertas de forma exploratória no texto: foram definidas \textit{a priori} por uma profissional de hepatologia, com base em sua relevância clínica no contexto do ambulatório de origem dos dados.
+
+\label{sec:estrutura-causal}As oito condições não são independentes entre si, e sua estrutura causal condiciona a formulação da tarefa. A esteatose hepática, a hepatite B e a hepatite C são causas frequentes de dano hepático crônico que pode evoluir para cirrose. A cirrose e a esquistossomose hepatoesplênica são causas de hipertensão portal, respectivamente nas formas cirrótica e não cirrótica. A hemorragia digestiva alta e a peritonite bacteriana espontânea são descompensações da doença hepática de base, associadas à hipertensão portal e à cirrose avançada. Um mesmo paciente pode, portanto, apresentar várias dessas condições encadeadas, o que motiva a formulação da tarefa como classificação multirrótulo: a cada prontuário associa-se o subconjunto das oito condições documentadas como presentes, em vez de uma única categoria. Ainda assim, a estrutura causal exige cuidado na distinção entre doença de base e complicação, de modo que a fronteira entre classes permanece um ponto sensível da avaliação, discutido na definição do critério de presença clara na Seção~\ref{sec:met-prompt}.
 
 A lista fixa de classes é o ponto de partida de todo o pipeline. Tanto a triagem de prontuários candidatos, descrita na Seção~\ref{sec:met-amostra}, quanto o \textit{prompt} de extração, apresentado na Seção~\ref{sec:met-prompt}, foram construídos em torno exatamente dessas oito categorias. Definidas as classes, o passo seguinte consistiu em selecionar os prontuários a avaliar e estabelecer, para cada um deles, o conjunto correto de doenças.
 
 \section{Construção da amostra e dos rótulos de referência}\label{sec:met-amostra}
 
-Os experimentos foram conduzidos sobre um conjunto de 537 prontuários extraído do corpus de 3.757. Esse conjunto não constitui amostra aleatória: foi construído por um funil de três etapas, representado no ramo esquerdo da Figura~\ref{fig:met-visao-geral}. A escolha decorre do fato de que uma amostra aleatória simples teria prevalência baixa demais de cada uma das oito doenças, com número de casos positivos por classe insuficiente para uma avaliação multirrótulo. O funil contorna esse problema ao enriquecer a amostra com prontuários que plausivelmente mencionam as condições de interesse.
+Os experimentos foram conduzidos sobre um conjunto de 537 prontuários extraído do corpus de 3.757. Esse conjunto não constitui amostra aleatória: foi construído por um funil de três etapas, representado no painel 1 da Figura~\ref{fig:met-visao-geral}. A escolha decorre do fato de que uma amostra aleatória simples teria prevalência baixa demais de cada uma das oito doenças, com número de casos positivos por classe insuficiente para uma avaliação multirrótulo. O funil contorna esse problema ao enriquecer a amostra com prontuários que plausivelmente mencionam as condições de interesse.
 
 A primeira etapa consistiu em uma triagem por expressões regulares sobre o texto bruto de todo o corpus, em busca de menções às oito doenças-alvo. Um teste manual preliminar mostrou que uma busca ingênua pelos termos produzia falsos positivos sistemáticos, o que motivou quatro correções:
 \begin{enumerate}
@@ -97,20 +58,20 @@ A Tabela~\ref{tab:met-distribuicao} apresenta a distribuição final das classes
 \centering
 \caption[Distribuição das classes na amostra de 537 prontuários]{Distribuição das classes na amostra de 537 prontuários. Como a classificação é multirrótulo, os percentuais não somam 100\%.}
 \label{tab:met-distribuicao}
-\begin{tabular}{lrr}
+\begin{tabular}{lrl}
 \toprule
 Doença & Pacientes & \% da amostra \\
 \midrule
-Hipertensão portal & 201 & 37,4 \\
-Esteatose hepática & 156 & 29,1 \\
-Cirrose hepática & 152 & 28,3 \\
-Esquistossomose & 95 & 17,7 \\
-Hepatite B & 90 & 16,8 \\
-Hepatite C & 67 & 12,5 \\
-Hemorragia digestiva alta & 36 & 6,7 \\
-Peritonite bacteriana espontânea & 2 & 0,4 \\
+Hipertensão portal & 201 & \barcell{vTeal}{0.9350}{37,4} \\
+Esteatose hepática & 156 & \barcell{vTeal}{0.7275}{29,1} \\
+Cirrose hepática & 152 & \barcell{vTeal}{0.7075}{28,3} \\
+Esquistossomose & 95 & \barcell{vTeal}{0.4425}{17,7} \\
+Hepatite B & 90 & \barcell{vTeal}{0.4200}{16,8} \\
+Hepatite C & 67 & \barcell{vTeal}{0.3125}{12,5} \\
+Hemorragia digestiva alta & 36 & \barcell{vTeal}{0.1675}{6,7} \\
+Peritonite bacteriana espontânea & 2 & \barcell{vTeal}{0.0100}{0,4} \\
 \midrule
-Nenhuma das oito doenças & 68 & 12,7 \\
+Nenhuma das oito doenças & 68 & \barcell{vCinza}{0.3175}{12,7} \\
 \bottomrule
 \end{tabular}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
@@ -118,7 +79,7 @@ Nenhuma das oito doenças & 68 & 12,7 \\
 
 \section{Construção do grafo de conhecimento}\label{sec:met-grafo}
 
-Paralelamente à construção da amostra, o corpus foi indexado pelo GraphRAG. O índice foi construído uma única vez, antes de qualquer consulta, segundo o pipeline de indexação descrito na Seção~\ref{sec:graphrag} e representado no ramo direito da Figura~\ref{fig:met-visao-geral}. Esta seção não retoma o funcionamento geral de cada etapa, mas registra como ela foi aplicada ao corpus e quais estruturas resultaram.
+Paralelamente à construção da amostra, o corpus foi indexado pelo GraphRAG. O índice foi construído uma única vez, antes de qualquer consulta, segundo o pipeline de indexação descrito na Seção~\ref{sec:graphrag} e representado no painel 2 da Figura~\ref{fig:met-visao-geral}. Esta seção não retoma o funcionamento geral de cada etapa, mas registra como ela foi aplicada ao corpus e quais estruturas resultaram.
 % TODO: confirmar se o índice cobre o corpus completo de 3.757 prontuários ou apenas a amostra de 537.
 % TODO: informar o modelo de linguagem e o modelo de embeddings usados na indexação, o tamanho das unidades de texto e a sobreposição entre elas.
 
@@ -155,13 +116,13 @@ O cruzamento dos quatro modos de busca com dois níveis de comunidade, 1 e 2, pr
 \toprule
 Modo de busca & Nível 1 & Nível 2 \\
 \midrule
-\textit{basic}  & S1 & S2 \\
-\textit{local}  & S3 & S4 \\
-\textit{global} & S5 & S6 \\
-\textit{drift}  & S7 & S8 \\
+\chip{modoBasic}\textit{basic}  & S1 & S2 \\
+\chip{modoLocal}\textit{local}  & S3 & S4 \\
+\chip{modoGlobal}\textit{global} & {\color{black!45}S5} & {\color{black!45}S6} \\
+\chip{modoDrift}\textit{drift}  & S7 & S8 \\
 \bottomrule
 \end{tabular}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor. Em cinza, os sistemas não concluídos de forma confiável (Seção~\ref{sec:met-limitacoes}).}
 \end{table}
 
 Uma consequência do desenho merece registro. Como o modo \textit{basic} não utiliza a estrutura do grafo, o nível de comunidade não interfere na montagem do seu contexto, de modo que S1 e S2 correspondem, na prática, a duas execuções independentes da mesma configuração. Esse par oferece, assim, uma referência da variação entre execuções atribuível ao próprio modelo, útil para interpretar as diferenças entre níveis observadas nos demais modos.
@@ -180,15 +141,15 @@ A hierarquia produzida pelo algoritmo de Leiden possui 7 níveis, e a Tabela~\re
 Nível & Comunidades & Tamanho médio & Tamanho mediano \\
 \midrule
 0 & 46    & 543,6 & 5 \\
-1 & 501   & 49,7  & 5 \\
-2 & 1.475 & 16,1  & 6 \\
+\rowcolor{linhaDestaque}1 & 501   & 49,7  & 5 \\
+\rowcolor{linhaDestaque}2 & 1.475 & 16,1  & 6 \\
 3 & 1.959 & 9,7   & 4 \\
 4 & 591   & 15,9  & 3 \\
 5 & 60    & 85,1  & 6 \\
 6 & 7     & 577,3 & 2 \\
 \bottomrule
 \end{tabular}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir do índice construído.}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir do índice construído. Em destaque, os níveis adotados.}
 \end{table}
 
 Os níveis mais profundos foram descartados por razões opostas. O nível 3 apresenta o maior número de comunidades da hierarquia (1.959), com mediana de 4 entidades, o que amplia o custo computacional dos modos que percorrem comunidades inteiras, como o \textit{global}, e aumenta o risco de separar entidades clinicamente relacionadas em comunidades distintas. Nos níveis 4 a 6, o número de comunidades volta a diminuir, enquanto a relação entre tamanho médio e mediano se torna irregular, sem ganho evidente de especificidade. Os níveis 1 e 2, com 501 e 1.475 comunidades e medianas de 5 e 6 entidades, ocupam a faixa intermediária da hierarquia: são finos o suficiente para separar temas clínicos distintos, sem a fragmentação e o custo dos níveis mais profundos, em consonância com o compromisso entre abrangência e especificidade discutido na Seção~\ref{sec:graphrag}.

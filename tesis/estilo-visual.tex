@@ -1,0 +1,76 @@
+% =====================================================================
+% Identidade visual de gráficos e tabelas
+%
+% Paleta e macros adaptadas do código-fonte (LaTeX) de dois artigos:
+%   - OA-RAG: Ontology-based Agentic RAG (arXiv:2610.36335) -- paleta,
+%     destaques de tabela (\tfirst, \tsecond, \gain, \loss, \cmark,
+%     \nomark, linha/coluna em destaque), legenda com "chips" e o estilo
+%     de barras horizontais com rótulo interno;
+%   - Hossain e Sarıyüce, Core-based Hierarchies for Efficient GraphRAG
+%     (arXiv:2603.05207) -- macro \heatmap de células de tabela.
+% =====================================================================
+
+\usepackage{colortbl}
+\usepackage{pifont}
+\usepackage{fontawesome5}   % ícones da figura de arquitetura
+\usetikzlibrary{patterns, shapes.arrows}
+
+% --- Paleta principal (OA-RAG) -----------------------------------------
+\definecolor{vAzul}{HTML}{2A78D6}
+\definecolor{vVerde}{HTML}{1BAF7A}
+\definecolor{vLaranja}{HTML}{EB6834}
+\definecolor{vAmbar}{HTML}{EDA100}
+\definecolor{vRoxo}{HTML}{4A3AA7}
+\definecolor{vVermelho}{HTML}{E34948}
+\definecolor{vTeal}{HTML}{2A9D8F}
+\definecolor{vCinza}{HTML}{9B9A94}
+\definecolor{vNeutro}{HTML}{DDDCD5}
+
+% Cada modo de busca tem uma cor fixa em todo o documento
+\colorlet{modoBasic}{vAzul}
+\colorlet{modoLocal}{vVerde}
+\colorlet{modoGlobal}{vRoxo}
+\colorlet{modoDrift}{vLaranja}
+
+% --- Tabelas (OA-RAG) --------------------------------------------------
+\colorlet{linhaDestaque}{black!6}
+\colorlet{colunaDestaque}{black!8}
+\newcommand{\tfirst}[1]{{\color{red!80!black}#1}}
+\newcommand{\tsecond}[1]{{\color{blue!80!black}#1}}
+\newcommand{\gain}[1]{\;{\color{green!50!black}\ensuremath{\uparrow}\,#1}}
+\newcommand{\loss}[1]{\;{\color{red!75!black}\ensuremath{\downarrow}\,#1}}
+\newcommand{\cmark}{\ding{51}}
+\newcommand{\nomark}{{\color{black!35}--}}
+\newcommand{\tcok}{\textcolor{green!50!black}{\ding{51}}}
+\newcommand{\tcno}{\textcolor{red!75!black}{\ding{55}}}
+
+% Amostra de cor para legendas (o "\chip" do OA-RAG)
+\newcommand{\chip}[1]{\tikz[baseline=-0.6ex]\filldraw[fill=#1, draw=black!40, line width=0.3pt] (0,-0.09) rectangle (0.30,0.09);\hspace{2.5pt}}
+
+% Barra proporcional dentro de célula de tabela (valor em [0,1]), no
+% estilo das células de acurácia do OA-RAG: \barcell{cor}{valor}{rótulo}
+\newcommand{\barcell}[3]{%
+  \tikz[baseline=-0.6ex]{%
+    \fill[black!5] (0,-0.11) rectangle (1.6,0.11);%
+    \fill[#1] (0,-0.11) rectangle ({1.6*#2},0.11);%
+    \node[anchor=west, inner sep=0pt, font=\footnotesize] at ({1.6*#2+0.06},0) {#3};%
+  }%
+}
+
+% --- Posicionamento de figuras (OA-RAG) ---------------------------------
+% Limites padrão do LaTeX deixam figuras altas presas na fila de floats,
+% empurrando todas as seguintes para o fim do capítulo. Mesmos valores do
+% preâmbulo do OA-RAG.
+\renewcommand{\topfraction}{.92}\renewcommand{\dbltopfraction}{.92}
+\renewcommand{\textfraction}{.06}\renewcommand{\floatpagefraction}{.72}
+
+% --- Heatmap de células (Hossain e Sarıyüce) ----------------------------
+% Branco (0) -> amarelo (50) -> vermelho (100); imprime o valor.
+\newcommand{\heatmap}[1]{%
+    \pgfmathsetmacro{\val}{#1}%
+    \pgfmathsetmacro{\r}{ifthenelse(\val<50, \val/50, 1)}%
+    \pgfmathsetmacro{\g}{ifthenelse(\val<50, 1, 2-\val/50)}%
+    \pgfmathsetmacro{\b}{0}%
+    \edef\temp{\noexpand\cellcolor[rgb]{\r,\g,\b}}%
+    \temp #1%
+}

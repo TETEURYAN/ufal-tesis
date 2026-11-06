@@ -1,50 +1,98 @@
 \chapter{Fundamentação Teórica}\label{cap:fundamentacao}
 
-Este capítulo reúne os fundamentos necessários à compreensão do objeto de estudo. Parte-se dos modelos de linguagem de grande escala e das dificuldades impostas pelo texto clínico, avança-se pela geração aumentada por recuperação e pelos grafos de conhecimento até o GraphRAG, discute-se o comportamento dos modelos diante de contextos longos e encerra-se com os instrumentos de avaliação de classificadores e de anotação de dados.
+Este capítulo apresenta os conceitos e as técnicas que fundamentam os capítulos seguintes. Parte-se do processamento de linguagem natural e dos modelos de linguagem de grande escala, avança-se pela geração aumentada por recuperação e pelos grafos de conhecimento até o GraphRAG, discutem-se o comportamento dos modelos diante de contextos longos e as dificuldades próprias do texto clínico, e encerra-se com as métricas de avaliação de desempenho e os instrumentos de anotação de dados.
 
-\section{Modelos de Linguagem de Grande Escala}\label{sec:llm}
+\section{Processamento de Linguagem Natural}\label{sec:pln}
 
-O processamento de linguagem natural passou por transformação profunda com a consolidação dos modelos de linguagem de grande escala (LLMs, do inglês \textit{large language models}), sistemas neurais treinados para estimar a distribuição de probabilidade de sequências textuais e capazes de gerar linguagem coerente a partir de um comando. Esses modelos apoiam-se quase invariavelmente na arquitetura \textit{Transformer}, proposta por \citet{vaswani2017}, cuja inovação central é o mecanismo de autoatenção, que pondera de forma dinâmica a relevância de cada elemento da sequência em relação aos demais, dispensa a recorrência empregada em arquiteturas anteriores e permite o processamento paralelo de sequências longas. A capacidade de modelar dependências de longo alcance e a boa escalabilidade em \textit{hardware} paralelo tornaram essa arquitetura o alicerce sobre o qual modelos com bilhões de parâmetros foram construídos.
+O processamento de linguagem natural (PLN) é a área da computação dedicada a métodos que permitem a sistemas computacionais analisar, interpretar e gerar linguagem humana. Entre suas tarefas clássicas estão a classificação de textos, o reconhecimento de entidades nomeadas, a extração de relações entre entidades, a sumarização e a resposta a perguntas. Em muitas aplicações, essas tarefas se combinam, como quando o reconhecimento das menções a doenças em um documento serve de base para classificá-lo quanto à presença de cada condição. No domínio das doenças digestivas, aplicações do PLN são descritas há mais de uma década \citep{hou2014} e abrangem desde a identificação de achados em laudos, como adenomas em relatórios de colonoscopia \citep{SABRIE2023350}, até a extração de informação de registros clínicos em gastroenterologia e hepatologia \citep{stammers2025}.
 
-O treinamento desses modelos ocorre em duas fases principais. Na primeira, o pré-treinamento auto-supervisionado, o modelo é exposto a grandes volumes de texto não rotulado e otimizado para prever \textit{tokens} a partir de seu contexto, tarefa que não exige anotação humana e que induz a internalização de regularidades sintáticas, semânticas e factuais da língua. O conhecimento assim adquirido fica codificado nos pesos da rede, razão pela qual se fala em conhecimento paramétrico: a informação não é consultada em uma base externa, mas reconstruída pelo próprio modelo no momento da geração.
+Os métodos empregados nessas tarefas evoluíram em etapas que ainda hoje coexistem. As primeiras abordagens apoiavam-se em regras escritas manualmente, léxicos e expressões regulares, transparentes e de baixo custo, porém frágeis diante da variação da linguagem. Seguiram-se os métodos estatísticos e de aprendizado de máquina, que aprendem padrões a partir de exemplos anotados, inicialmente com atributos definidos manualmente e, depois, com redes neurais capazes de aprender representações distribuídas das palavras. A arquitetura \textit{Transformer} e o pré-treinamento em larga escala deram origem aos modelos de linguagem de grande escala, cujas aplicações em gastroenterologia e hepatologia já são registradas em revisões recentes \citep{shahab2024,omar2025}. As abordagens mais simples, contudo, não foram superadas em todos os casos: métodos lexicais determinísticos continuam competitivos na extração de variáveis clínicas de baixa complexidade semântica \citep{pereira2026}. Os modelos de linguagem de grande escala são detalhados a seguir.
 
-O modelo pré-treinado, contudo, tende a completar texto de maneira genérica, sem necessariamente atender à intenção expressa em uma instrução. Para corrigir esse comportamento, aplica-se o ajuste por instruções (\textit{instruction tuning}), que refina o modelo sobre pares de instrução e resposta, e técnicas de alinhamento que incorporam preferências humanas, como o aprendizado por reforço a partir de \textit{feedback} humano \citep{ouyang2022}. Esse processo aproxima as respostas do modelo das expectativas do usuário quanto a utilidade, veracidade e adequação.
+\subsection{Modelos de Linguagem de Grande Escala}\label{sec:llm}
 
-Ainda assim, o paradigma apresenta limitações estruturais. O conhecimento paramétrico é estático, pois reflete o estado do corpus de treinamento em determinado momento e não incorpora informações posteriores, o que produz defasagem temporal progressiva. A atualização desse conhecimento exige retreinar ou refinar o modelo, operação de custo computacional elevado que não pode ser repetida a cada nova evidência. Em áreas que evoluem com rapidez, como a medicina, essa rigidez compromete a confiabilidade das respostas.
+Os modelos de linguagem de grande escala (LLMs, do inglês \textit{large language models}) são sistemas neurais treinados para estimar a distribuição de probabilidade de sequências textuais e capazes de gerar linguagem coerente a partir de um comando. Apoiam-se quase invariavelmente na arquitetura \textit{Transformer} \citep{vaswani2017}, representada na Figura~\ref{fig:transformer}, formada por pilhas de camadas que combinam atenção e redes \textit{feed-forward}. Sua inovação central é o mecanismo de autoatenção, que pondera a relevância de cada elemento da sequência em relação aos demais, dispensa a recorrência e permite processar sequências longas em paralelo, o que tornou viável o treinamento de modelos com bilhões de parâmetros.
 
-A essas limitações soma-se o fenômeno da alucinação, entendido como a geração de conteúdo fluente e plausível, porém factualmente incorreto ou não sustentado pelas fontes disponíveis \citep{ji2023}. A alucinação decorre da natureza probabilística da geração, de lacunas e ruídos no corpus de treinamento e da ausência de um mecanismo interno de verificação factual, já que o modelo otimiza plausibilidade linguística e não correção. Em contexto clínico, o problema é especialmente grave, pois uma afirmação diagnóstica incorreta apresentada com a mesma fluência de uma correta pode induzir decisões equivocadas, e a checagem por especialista nem sempre é viável em escala. \citet{benary2023} ilustram a distância entre fluência e confiabilidade ao submeter dez casos fictícios de câncer avançado a quatro LLMs, para identificar opções de tratamento personalizado a partir das alterações genéticas de cada paciente. Tomando um especialista humano como referência, as opções propostas pelos modelos alcançaram F1 entre 0,04 e 0,19, e os membros de um comitê molecular de tumores reconheceram as propostas como geradas por IA sobretudo pela insuficiência da evidência que as acompanhava; ainda assim, para cada paciente, ao menos um modelo sugeriu uma opção considerada útil pelo comitê.
+\begin{figure}[!htbp]
+\centering
+\includegraphics[width=0.40\textwidth]{Cap03/figuras/transformer_arquitetura.png}
+\caption[Arquitetura do modelo \textit{Transformer}]{Arquitetura do modelo \textit{Transformer}: codificador, à esquerda, e decodificador, à direita, cada um com $N$ camadas de atenção com múltiplas cabeças e redes \textit{feed-forward}.}
+\label{fig:transformer}
+\par\smallskip{\footnotesize Fonte: \citet{vaswani2017}.}
+\end{figure}
 
-Dois conceitos operacionais interessam ao restante do trabalho. O primeiro é a tokenização, procedimento que segmenta o texto em unidades sublexicais (\textit{tokens}) antes de submetê-lo ao modelo, de modo que o número de \textit{tokens}, e não o de palavras, passa a ser a unidade de medida do processamento. O segundo é a janela de contexto, o limite máximo de \textit{tokens} que o modelo consegue considerar de uma só vez, somadas entrada e saída. Esse limite condiciona quanto da informação recuperada pode ser fornecido ao modelo em uma única consulta, questão retomada e aprofundada na Seção~\ref{sec:contextos-longos}.
+A atenção é calculada por produto escalar escalonado (Figura~\ref{fig:atencao}): a compatibilidade entre consultas ($Q$) e chaves ($K$) é medida pelo produto escalar, dividida pela raiz da dimensão das chaves, $d_k$, e normalizada pela função \textit{softmax}, de modo que os pesos resultantes ponderam os valores ($V$):
+\begin{equation}
+\text{Atenção}(Q,K,V)=\operatorname{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V.
+\label{eq:atencao}
+\end{equation}
+A atenção com múltiplas cabeças executa $h$ dessas operações em paralelo, sobre projeções lineares distintas, o que permite ao modelo atender simultaneamente a diferentes subespaços de representação.
 
-A geração é governada por parâmetros de decodificação, entre os quais a temperatura, que regula a aleatoriedade da amostragem sobre a distribuição de probabilidade dos próximos \textit{tokens}. Valores altos favorecem diversidade; valores próximos de zero aproximam a decodificação de um regime determinístico, em que o \textit{token} mais provável é sempre escolhido. Em pesquisa científica com LLMs, a decodificação determinística é preferível por aumentar a reprodutibilidade dos experimentos, ainda que não a garanta por completo, dado que o paralelismo de \textit{hardware} e as atualizações de modelos acessados por API podem introduzir variação residual.
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[b]{0.38\textwidth}
+  \centering
+  \includegraphics[width=2.45cm]{Cap03/figuras/atencao_produto_escalar.png}\\[4pt]
+  {\small (a) Produto escalar escalonado}
+\end{minipage}\hspace{0.06\textwidth}%
+\begin{minipage}[b]{0.46\textwidth}
+  \centering
+  \includegraphics[width=4.6cm]{Cap03/figuras/atencao_multiplas_cabecas.png}\\[4pt]
+  {\small (b) Múltiplas cabeças}
+\end{minipage}
+\caption[Mecanismos de atenção do \textit{Transformer}]{Mecanismos de atenção do \textit{Transformer}: (a) atenção por produto escalar escalonado, conforme a Equação~\eqref{eq:atencao}; (b) atenção com múltiplas cabeças.}
+\label{fig:atencao}
+\par\smallskip{\footnotesize Fonte: \citet{vaswani2017}.}
+\end{figure}
 
-Fornecer a esses modelos informação externa confiável é, portanto, condição para empregá-los na resposta a perguntas sobre um domínio específico, necessidade que se agrava quando essa informação está registrada em texto clínico não estruturado, objeto da próxima seção.
+O treinamento ocorre em duas fases. No pré-treinamento auto-supervisionado, o modelo aprende a prever \textit{tokens} a partir de grandes volumes de texto não rotulado e internaliza regularidades da língua em seus pesos, o chamado conhecimento paramétrico. Em seguida, o ajuste por instruções e técnicas de alinhamento com preferências humanas, como o aprendizado por reforço a partir de \textit{feedback} humano \citep{ouyang2022}, aproximam as respostas da intenção expressa pelo usuário.
 
-\section{Prontuários Eletrônicos e o Desafio do Texto Clínico}\label{sec:prontuarios}
+O paradigma tem, contudo, limitações estruturais. O conhecimento paramétrico é estático e só se atualiza por retreinamento, de custo elevado, o que compromete a confiabilidade em áreas que evoluem com rapidez, como a medicina. Soma-se a isso a alucinação, a geração de conteúdo fluente e plausível, porém incorreto ou não sustentado pelas fontes \citep{ji2023}, especialmente grave em contexto clínico: ao propor tratamentos para casos fictícios de câncer avançado, quatro LLMs alcançaram F1 entre 0,04 e 0,19 frente a um especialista, e suas propostas foram reconhecidas como geradas por IA sobretudo pela insuficiência da evidência que as acompanhava \citep{benary2023}.
 
-O prontuário eletrônico do paciente (PEP; em inglês, \textit{electronic health record}, EHR) é o registro longitudinal e digital das informações de saúde de um indivíduo, mantido por um ou mais serviços assistenciais e destinado a apoiar a continuidade do cuidado, a gestão e a pesquisa. Reúne dados de identificação, história clínica, evolução, prescrições, resultados de exames e desfechos, produzidos por profissionais distintos ao longo do tempo. Parte desse conteúdo é registrada em campos estruturados; parte, em texto livre redigido durante o atendimento.
-
-Os dados clínicos estruturados seguem modelos de representação e vocabulários padronizados que atribuem significado computável a cada item. Padrões de interoperabilidade como o HL7 e sua evolução, o FHIR (\textit{Fast Healthcare Interoperability Resources}), definem como as informações são organizadas e trocadas entre sistemas; terminologias como a Classificação Internacional de Doenças (CID-10) e o SNOMED-CT fornecem códigos unívocos para diagnósticos, procedimentos e achados. Quando presentes, esses elementos permitem consulta direta e agregação confiável. O texto livre, por outro lado, carrega grande parte do raciocínio clínico, como hipóteses, justificativas e nuances de evolução, sem qualquer marcação semântica, e é justamente onde reside a informação necessária para responder perguntas como a que orienta este trabalho.
-
-A falta de um formato padronizado limita o aproveitamento desses registros tanto por clínicos quanto por sistemas de aprendizado de máquina, o que motivou esforços de estruturação automática do texto clínico. Ao estruturar laudos radiológicos, \citet{moll2025} mostraram que modelos codificador-decodificador leves, com menos de 300 milhões de parâmetros, superaram oito LLMs abertos, de 1 a 70 bilhões de parâmetros, quando estes eram adaptados apenas por técnicas de \textit{prompt}. Alguns LLMs ajustados por LoRA obtiveram ganhos modestos sobre o modelo leve, mas a um custo computacional muito superior: no caso do LLaMA-3-70B, mais de 400 vezes o tempo de inferência, o custo e as emissões de carbono do modelo leve. Os autores apontam ainda a falta de transparência e as preocupações com a privacidade dos dados como obstáculos à implantação de LLMs em ambiente clínico. O resultado relativiza a premissa de que modelos maiores são sempre preferíveis para o texto clínico e antecipa um compromisso entre desempenho, custo e privacidade que também se impôs neste trabalho, retomado na Seção~\ref{sec:met-modelo}.
-
-O texto clínico apresenta características que o tornam particularmente hostil ao processamento automático. Abreviações e siglas são abundantes e não padronizadas, variando entre serviços, especialidades e autores. A ortografia é irregular, com erros de digitação, ausência de acentuação e grafias alternativas. O estilo é telegráfico, com frases nominais, omissão de conectivos e pontuação idiossincrática. A negação e a incerteza são onipresentes, pois se registra com frequência aquilo que foi investigado e afastado, e hipóteses diagnósticas não confirmadas convivem no mesmo documento com diagnósticos estabelecidos, de modo que a simples ocorrência do nome de uma doença não implica que o paciente a tenha. A autoria múltipla acrescenta heterogeneidade de vocabulário e de estrutura ao longo de um mesmo prontuário.
-
-Esses obstáculos são agravados no português clínico brasileiro pela escassez de recursos. Há poucos corpora clínicos anotados e de acesso restrito, não existe vocabulário controlado de referência amplamente adotado equivalente ao que se dispõe em inglês, e a maior parte dos modelos, ontologias e ferramentas de PLN clínico foi desenvolvida para o inglês, o que limita a transferência direta \citep{stammers2025,omar2025}. Traduções de terminologias internacionais nem sempre acompanham o uso efetivo dos profissionais brasileiros.
-
-A variação terminológica configura um problema de normalização de conceitos. Um mesmo achado clínico pode ser expresso por sigla, por sinônimo ou por nomenclatura de época distinta, e todas essas formas precisam ser reconhecidas como referentes à mesma entidade. No domínio hepatológico, a doença hepática gordurosa não alcoólica ilustra bem o fenômeno: as siglas DHGNA e NAFLD, a designação por extenso esteato-hepatite não alcoólica e, mais recentemente, os termos MASLD e MASH, adotados após revisão internacional da nomenclatura \citep{rinella2023}, remetem a condições do mesmo espectro. Um sistema que trate essas formas como conceitos independentes fragmenta a evidência e subestima a presença da doença.
-
-Comparado a outros gêneros textuais especializados, como o jurídico e o científico, o texto clínico é mais adverso para o PLN. Documentos jurídicos e artigos científicos são redigidos para leitura externa, seguem convenções de estrutura e citação, primam pela completude do argumento e passam por revisão editorial. A nota clínica é escrita sob pressão de tempo, como registro para o próprio autor e para colegas que compartilham o contexto do caso, e por isso admite elipse, abreviação e conteúdo implícito. A informação relevante costuma estar dispersa e pressupõe conhecimento que não foi verbalizado no documento.
-
-Extrair uma resposta confiável desse material exige fornecer ao modelo de linguagem trechos pertinentes do próprio prontuário, estratégia que a geração aumentada por recuperação sistematiza e que se descreve a seguir.
+Do ponto de vista operacional, o texto é segmentado em unidades sublexicais (\textit{tokens}), e a janela de contexto limita quantos \textit{tokens} o modelo considera de uma só vez, o que condiciona quanto da informação recuperada pode ser fornecido em uma consulta, questão retomada na Seção~\ref{sec:contextos-longos}. A geração é controlada por parâmetros de decodificação, como a temperatura, que regula a aleatoriedade da amostragem; valores próximos de zero aproximam a decodificação de um regime determinístico, preferível quando se busca reprodutibilidade, ainda que não a garanta por completo. Fornecer a esses modelos informação externa confiável é, assim, condição para empregá-los em domínios específicos, necessidade que a geração aumentada por recuperação, objeto da próxima seção, procura atender.
 
 \section{Geração Aumentada por Recuperação}\label{sec:rag}
 
 A dependência exclusiva do conhecimento paramétrico restringe o uso de LLMs em domínios especializados ou dinâmicos, tanto pela defasagem quanto pelo risco de alucinação discutidos na Seção~\ref{sec:llm}. A geração aumentada por recuperação (RAG, do inglês \textit{retrieval-augmented generation}), formalizada por \citet{lewis2020}, enfrenta essa limitação ao acoplar ao modelo generativo um componente de recuperação que, dada uma consulta, seleciona trechos pertinentes de uma base externa e os fornece como contexto adicional no momento da geração. O conhecimento passa a ter duas origens, o paramétrico, interno ao modelo, e o não paramétrico, recuperado sob demanda de uma coleção que pode ser atualizada sem retreinamento. A resposta fica ancorada em evidência textual explícita, o que favorece a verificabilidade.
 
-O pipeline canônico do RAG compreende três etapas. Na indexação, realizada uma única vez, os documentos da base são segmentados e convertidos em representações que permitem busca eficiente. Na recuperação, a consulta é comparada a esse índice e os trechos mais relevantes são selecionados. Na geração, esses trechos são concatenados à consulta em um \textit{prompt} e submetidos ao LLM, que produz a resposta final condicionada ao contexto recuperado.
+O pipeline canônico do RAG compreende três etapas, esquematizadas na Figura~\ref{fig:rag}. Na indexação, realizada uma única vez, os documentos da base são segmentados e convertidos em representações que permitem busca eficiente. Na recuperação, a consulta é comparada a esse índice e os trechos mais relevantes são selecionados. Na geração, esses trechos são concatenados à consulta em um \textit{prompt} e submetidos ao LLM, que produz a resposta final condicionada ao contexto recuperado.
 
-A segmentação dos documentos, ou \textit{chunking}, é decisão de projeto com efeito direto sobre a qualidade do sistema. As estratégias mais simples dividem o texto por número fixo de caracteres ou de \textit{tokens}, com eventual sobreposição entre segmentos vizinhos para não perder informação nas fronteiras. Estratégias semânticas procuram respeitar limites naturais do texto, como parágrafos, seções ou mudanças de tópico. Há um compromisso a administrar, pois segmentos grandes preservam contexto e coerência, mas diluem o sinal relevante e podem esbarrar em limites de \textit{tokens}, ao passo que segmentos pequenos são mais precisos na recuperação, porém correm o risco de fragmentar uma ideia entre unidades distintas. Em texto clínico, telegráfico e pouco estruturado, encontrar esse ponto de equilíbrio é especialmente difícil.
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[
+  font=\footnotesize,
+  etapa/.style={draw, line width=0.6pt, rounded corners=2pt, align=center, text width=2.75cm, minimum height=9mm, inner sep=3pt},
+  idx/.style={etapa, draw=vAzul!75!black, fill=vAzul!14},
+  rec/.style={etapa, draw=vAmbar!80!black, fill=vAmbar!18},
+  ger/.style={etapa, draw=vVerde!75!black, fill=vVerde!16},
+  seta/.style={-{Latex[length=1.8mm]}, line width=0.6pt, black!65},
+  titulo/.style={font=\footnotesize\bfseries, anchor=base}
+]
+\node[titulo, text=vAzul!80!black] at (0,0.75) {1. Indexação};
+\node[titulo, text=vAmbar!85!black] at (4.3,0.75) {2. Recuperação};
+\node[titulo, text=vVerde!80!black] at (8.6,0.75) {3. Geração};
+\node[idx] (doc) at (0,0) {Documentos};
+\node[idx] (seg) at (0,-1.35) {Segmentação\\(\textit{chunks})};
+\node[idx] (emb) at (0,-2.7) {Codificação em\\\textit{embeddings}};
+\node[idx] (bd)  at (0,-4.05) {Banco vetorial};
+\node[rec] (q)   at (4.3,0) {Consulta};
+\node[rec] (qe)  at (4.3,-1.35) {Codificação\\da consulta};
+\node[rec] (bus) at (4.3,-2.7) {Busca dos $k$ segmentos\\mais similares};
+\node[ger] (pr)  at (8.6,-1.35) {\textit{Prompt}: consulta\\+ $k$ segmentos};
+\node[ger] (llm) at (8.6,-2.7) {LLM};
+\node[ger] (res) at (8.6,-4.05) {Resposta};
+\draw[seta] (doc) -- (seg); \draw[seta] (seg) -- (emb); \draw[seta] (emb) -- (bd);
+\draw[seta] (q) -- (qe); \draw[seta] (qe) -- (bus);
+\draw[seta] (bd.east) -| node[pos=0.4, below=1pt, font=\scriptsize, text=black!60] {similaridade de cosseno} (bus.south);
+\draw[seta] (q.east) -| (pr.north);
+\draw[seta] (bus.east) -- ++(0.55,0) |- (pr.west);
+\draw[seta] (pr) -- (llm); \draw[seta] (llm) -- (res);
+\end{tikzpicture}
+\caption[Pipeline da geração aumentada por recuperação]{Pipeline da geração aumentada por recuperação (RAG): a indexação, realizada uma única vez, segmenta os documentos e armazena seus \textit{embeddings} em um banco vetorial; a recuperação seleciona os $k$ segmentos mais similares à consulta; a geração submete ao LLM um \textit{prompt} que combina a consulta e os segmentos recuperados.}
+\label{fig:rag}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com base em \citet{lewis2020}.}
+\end{figure}
+
+A segmentação dos documentos, ou \textit{chunking}, é decisão de projeto com efeito direto sobre a qualidade do sistema. As estratégias mais simples dividem o texto por número fixo de caracteres ou de \textit{tokens}, com eventual sobreposição entre segmentos vizinhos para não perder informação nas fronteiras. Estratégias semânticas procuram respeitar limites naturais do texto, como parágrafos, seções ou mudanças de tópico. Há um compromisso a administrar, pois segmentos grandes preservam contexto e coerência, mas diluem o sinal relevante e podem esbarrar em limites de \textit{tokens}, ao passo que segmentos pequenos são mais precisos na recuperação, porém correm o risco de fragmentar uma ideia entre unidades distintas. Em texto clínico, telegráfico e pouco estruturado (Seção~\ref{sec:prontuarios}), encontrar esse ponto de equilíbrio é especialmente difícil.
 
 A forma predominante de indexação e recuperação baseia-se em \textit{embeddings}. Cada segmento é mapeado por um modelo codificador para um vetor denso de dimensão fixa, de modo que trechos com significado próximo ocupem posições próximas no espaço vetorial. A consulta é codificada da mesma maneira, e a relevância é estimada por uma medida de proximidade, tipicamente a similaridade de cosseno, que compara a orientação dos vetores independentemente de sua magnitude. Bancos de dados vetoriais armazenam os \textit{embeddings} dos segmentos e implementam busca aproximada por vizinhos mais próximos, o que viabiliza a recuperação em coleções grandes com baixa latência.
 
@@ -66,13 +114,65 @@ A construção automática apoia-se em duas tarefas centrais de extração de in
 
 Um mesmo referente costuma aparecer sob formas diferentes ao longo de um corpus, e menções distintas podem designar entidades diferentes apesar de grafias iguais. A resolução de entidades (\textit{entity resolution}) é o processo de decidir quais menções correspondem à mesma entidade, de modo a unificá-las em um único nó. Como comparar todos os pares de menções é inviável em escala, aplicam-se técnicas de bloqueio, que agrupam previamente candidatos plausíveis e restringem a comparação a esses blocos. A decisão final combina similaridade de cadeias de caracteres, similaridade semântica entre \textit{embeddings} das menções e de seus contextos, e desambiguação apoiada na vizinhança no grafo. Sem essa etapa, o grafo fica fragmentado, com a evidência de uma entidade dispersa entre nós duplicados.
 
-No domínio clínico, os nós de interesse correspondem a doenças, sinais e sintomas, medicamentos, exames e procedimentos, e achados laboratoriais, enquanto as arestas capturam relações como uma doença que causa outra, um exame que evidencia um achado ou um fármaco prescrito para uma condição. Um KG assim estruturado, extraído dos prontuários, torna consultável a rede de fatos clínicos de um paciente ou de uma coorte.
+No domínio clínico, os nós de interesse correspondem a doenças, sinais e sintomas, medicamentos, exames e procedimentos, e achados laboratoriais, enquanto as arestas capturam relações como uma doença que causa outra, um exame que evidencia um achado ou um fármaco prescrito para uma condição. Um KG assim estruturado, extraído de prontuários, torna consultável a rede de fatos clínicos de um paciente ou de uma coorte, como ilustra a Figura~\ref{fig:kg-exemplo}.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize,
+  no/.style={circle, minimum size=15mm, inner sep=1pt, align=center, text width=13mm, line width=0.8pt},
+  pac/.style={no, fill=vAzul!60, draw=vAzul!80!black},
+  ate/.style={no, fill=vRoxo!30, draw=vRoxo!80!black},
+  cond/.style={no, fill=vLaranja!55, draw=vLaranja!80!black},
+  med/.style={no, fill=vVerde!50, draw=vVerde!80!black},
+  obs/.style={no, fill=vAmbar!55, draw=vAmbar!85!black},
+  rel/.style={-{Latex[length=2mm]}, line width=0.6pt, black!55},
+  rot/.style={midway, sloped, above, inner sep=1.2pt, font=\sffamily\tiny, text=black!80},
+  pilula/.style={rounded corners=5pt, inner xsep=5pt, inner ysep=2.5pt, font=\sffamily\tiny}
+]
+% legenda de rótulos (as "pílulas" do Neo4j)
+\node[pilula, fill=vAzul!60]    (l1) at (1.2,4.6) {Paciente};
+\node[pilula, fill=vRoxo!30,    right=4pt of l1] (l2) {Atendimento};
+\node[pilula, fill=vLaranja!55, right=4pt of l2] (l3) {Condição};
+\node[pilula, fill=vVerde!50,   right=4pt of l3] (l4) {Medicamento};
+\node[pilula, fill=vAmbar!55,   right=4pt of l4] (l5) {Observação};
+% nós
+\node[pac]  (p)   at (0,0)     {P-001};
+\node[ate]  (c1)  at (3.3,1.6) {Consulta\\12/03};
+\node[ate]  (c2)  at (3.3,-1.6) {Consulta\\20/08};
+\node[obs]  (hb)  at (6.0,3.5) {HbA1c\\8,1\%};
+\node[cond] (dm)  at (7.0,1.2) {Diabetes\\tipo 2};
+\node[med]  (met) at (9.8,3.2) {Metformina};
+\node[cond] (has) at (7.0,-1.2) {Hipertensão\\arterial};
+\node[med]  (los) at (9.8,-3.2) {Losartana};
+% relacionamentos tipados e dirigidos
+\draw[rel] (p)  -- (c1)  node[rot] {TEM\_ATENDIMENTO};
+\draw[rel] (p)  -- (c2)  node[rot, below] {TEM\_ATENDIMENTO};
+\draw[rel] (c1) -- (c2)  node[rot] {PRÓXIMO};
+\draw[rel] (c1) -- (hb)  node[rot] {TEM\_OBSERVAÇÃO};
+\draw[rel] (c1) -- (dm)  node[rot] {DIAGNOSTICOU};
+\draw[rel] (c1) -- (met) node[rot, pos=0.62] {PRESCREVEU};
+\draw[rel] (met) -- (dm) node[rot] {TRATA};
+\draw[rel] (c2) -- (has) node[rot, below] {DIAGNOSTICOU};
+\draw[rel] (c2) -- (los) node[rot, below, pos=0.62] {PRESCREVEU};
+\draw[rel] (los) -- (has) node[rot, below] {TRATA};
+% propriedades de um relacionamento (o painel de inspeção do Neo4j)
+\coordinate (m) at ($(c1)!0.5!(dm)$);
+\node[draw=black!40, line width=0.4pt, rounded corners=2pt, fill=white, align=left, font=\sffamily\tiny, inner sep=3pt] (props) at (4.95,0.25)
+  {\textbf{:DIAGNOSTICOU}\\[1pt] data: 2025-03-12\\ certeza: confirmada\\ fonte: evolução de 12/03};
+\draw[black!45, dashed, line width=0.4pt] (props.north) -- (m);
+\fill[black!55] (m) circle (1.1pt);
+\end{tikzpicture}
+\caption[Grafo de conhecimento clínico no estilo do Neo4j]{Exemplo fictício de grafo de conhecimento clínico representado como grafo de propriedades, no estilo do Neo4j: nós rotulados por tipo, relacionamentos tipados e dirigidos e, em destaque, as propriedades de um relacionamento, incluindo data, grau de certeza e proveniência.}
+\label{fig:kg-exemplo}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor, com modelo de dados adaptado de \citet{neo4j_patient_journey}.}
+\end{figure}
 
 Organizar o corpus recuperado como grafo, e não apenas como coleção de segmentos, é o princípio que o GraphRAG incorpora ao pipeline de recuperação, assunto da próxima seção.
 
 \section{GraphRAG}\label{sec:graphrag}
 
-O termo GraphRAG designa, em sentido amplo, a classe de abordagens de geração aumentada por recuperação que empregam um grafo como estrutura intermediária entre o corpus e o modelo generativo, seja para indexar o conteúdo, seja para guiar a recuperação. Sob esse rótulo cabem sistemas com grafos construídos manualmente, grafos derivados de ontologias existentes e grafos extraídos automaticamente do próprio corpus. Em sentido estrito, GraphRAG refere-se com frequência ao sistema homônimo proposto por \citet{edge2024} na Microsoft Research, doravante Microsoft GraphRAG, que extrai o grafo do corpus por meio de um LLM, organiza-o em comunidades hierárquicas e as resume, com o objetivo declarado de responder a consultas de sentido global sobre coleções de documentos, para as quais o RAG vetorial convencional é inadequado. Este trabalho avalia o Microsoft GraphRAG, e as menções a GraphRAG a partir daqui referem-se a essa implementação, salvo indicação em contrário.
+O termo GraphRAG designa, em sentido amplo, a classe de abordagens de geração aumentada por recuperação que empregam um grafo como estrutura intermediária entre o corpus e o modelo generativo, seja para indexar o conteúdo, seja para guiar a recuperação. Sob esse rótulo cabem sistemas com grafos construídos manualmente, grafos derivados de ontologias existentes e grafos extraídos automaticamente do próprio corpus. Em sentido estrito, GraphRAG refere-se com frequência ao sistema homônimo proposto por \citet{edge2024} na Microsoft Research, doravante Microsoft GraphRAG, que extrai o grafo do corpus por meio de um LLM, organiza-o em comunidades hierárquicas e as resume, com o objetivo declarado de responder a consultas de sentido global sobre coleções de documentos, para as quais o RAG vetorial convencional é inadequado. No restante deste capítulo, as menções a GraphRAG referem-se a essa implementação, salvo indicação em contrário.
 
 O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustradas na Figura~\ref{fig:graphrag-pipeline}. O corpus é primeiro segmentado em unidades de texto de tamanho controlado. Cada unidade é submetida a um LLM que extrai as entidades presentes, com nome, tipo e uma breve descrição, e as relações entre elas, também descritas em linguagem natural. As menções repetidas de uma mesma entidade ao longo das unidades são deduplicadas e mescladas, e suas descrições são agregadas, o que consolida um grafo único em que nós e arestas acumulam a evidência textual de origem. Sobre esse grafo executa-se um algoritmo de detecção de comunidades, que particiona os nós em grupos densamente conectados. Para cada comunidade, um LLM gera um resumo em linguagem natural a partir das entidades, relações e descrições que ela contém. O produto final da indexação é o conjunto formado pelo grafo, pelas comunidades em seus vários níveis e pelos respectivos resumos, além das unidades de texto originais, tudo disponível para a etapa de consulta.
 
@@ -81,11 +181,11 @@ O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustra
     \begin{tikzpicture}[
         >=stealth', shorten >=1pt, semithick, node distance=3cm,
         index/.style={
-            rectangle, draw=black, thick, fill=blue!10,
+            rectangle, draw=vAzul!75!black, line width=0.6pt, fill=vAzul!14,
             text width=3.2cm, align=center, rounded corners, minimum height=2.4em
         },
         query/.style={
-            rectangle, draw=black, thick, fill=ForestGreen!15,
+            rectangle, draw=vVerde!75!black, line width=0.6pt, fill=vVerde!16,
             text width=3.2cm, align=center, rounded corners, minimum height=2.4em
         },
         elab/.style={midway, right=5pt, align=left, font=\scriptsize, text width=3cm},
@@ -100,13 +200,13 @@ O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustra
       \node[query, above of=csum] (cans) {Respostas por comunidade};
       \node[query, above of=cans] (global) {Resposta global};
 
-      \draw[->] (doc)   -- (chunks) node[elab] {extração e segmentação do texto};
-      \draw[->] (chunks) -- (er)    node[elab] {sumarização adaptada ao domínio};
-      \draw[->] (er)    -- (kg)     node[elab] {sumarização adaptada ao domínio};
-      \draw[->] (kg)    -- (comm)   node[hlab] {detecção de comunidades};
-      \draw[->] (comm)  -- (csum)   node[elab] {sumarização adaptada ao domínio};
-      \draw[->] (csum)  -- (cans)   node[elab] {sumarização orientada à consulta};
-      \draw[->] (cans)  -- (global) node[elab] {sumarização orientada à consulta};
+      \draw[->, black!65, line width=0.6pt] (doc)   -- (chunks) node[elab] {extração e segmentação do texto};
+      \draw[->, black!65, line width=0.6pt] (chunks) -- (er)    node[elab] {sumarização adaptada ao domínio};
+      \draw[->, black!65, line width=0.6pt] (er)    -- (kg)     node[elab] {sumarização adaptada ao domínio};
+      \draw[->, black!65, line width=0.6pt] (kg)    -- (comm)   node[hlab] {detecção de comunidades};
+      \draw[->, black!65, line width=0.6pt] (comm)  -- (csum)   node[elab] {sumarização adaptada ao domínio};
+      \draw[->, black!65, line width=0.6pt] (csum)  -- (cans)   node[elab] {sumarização orientada à consulta};
+      \draw[->, black!65, line width=0.6pt] (cans)  -- (global) node[elab] {sumarização orientada à consulta};
 
       \node[index, font=\itshape, below=1.5cm of kg]  (itime) {Tempo de indexação};
       \node[query, font=\itshape, below=1.5cm of comm] (qtime) {Tempo de consulta};
@@ -119,7 +219,7 @@ O pipeline de indexação do Microsoft GraphRAG encadeia várias etapas, ilustra
 
 A detecção de comunidades no GraphRAG é feita pelo algoritmo de Leiden, proposto por \citet{traag2019} como aprimoramento do método de Louvain. Ambos buscam uma partição do grafo que maximize a modularidade, medida que compara a densidade de arestas dentro das comunidades com a que se esperaria em um grafo aleatório de mesmo grau. O método de Louvain, embora rápido e amplamente usado, pode produzir comunidades internamente mal conectadas, e até desconexas, situação em que um grupo rotulado como comunidade não forma, de fato, um subgrafo coeso. O Leiden acrescenta uma etapa de refinamento que garante que toda comunidade retornada seja internamente conectada, além de convergir para partições de melhor qualidade em menos iterações. O algoritmo é recursivo, no sentido de que, após encontrar uma partição, agrega cada comunidade em um supernó e repete o procedimento sobre o grafo agregado, o que gera uma hierarquia de partições em vez de uma partição única.
 
-Essa recursão produz os níveis de comunidade (\textit{community levels}), níveis de granularidade da partição, exemplificados na Figura~\ref{fig:leiden-hierarquia}, que contrasta as comunidades detectadas em dois níveis sobre um conjunto de dados de exemplo. No nível mais agregado, identificado como L0, o grafo é dividido em poucas comunidades amplas, que correspondem a grandes temas do corpus. A cada nível subsequente, as comunidades do nível anterior são subdivididas, de modo que os níveis mais altos contêm muitas comunidades pequenas e tematicamente específicas. Os resumos acompanham essa gradação, pois níveis baixos geram resumos longos e abstratos, que sintetizam grandes porções do corpus, ao passo que níveis altos geram resumos curtos e concretos, próximos do texto de origem. \citet{edge2024} avaliaram condições de nível de comunidade denominadas C0 a C3 e observaram um compromisso, em que os níveis intermediários tendem a favorecer o embasamento factual das respostas, enquanto os níveis mais agregados favorecem a abrangência ao custo de especificidade. Para uma tarefa de classificação diagnóstica, em que a resposta é uma entre poucas categorias e depende de detalhes concretos do prontuário, a especificidade do contexto é prioritária, o que sugere preferência por níveis mais granulares.
+Essa recursão produz os níveis de comunidade (\textit{community levels}), níveis de granularidade da partição, exemplificados na Figura~\ref{fig:leiden-hierarquia}, que contrasta as comunidades detectadas em dois níveis sobre um conjunto de dados de exemplo. No nível mais agregado, identificado como L0, o grafo é dividido em poucas comunidades amplas, que correspondem a grandes temas do corpus. A cada nível subsequente, as comunidades do nível anterior são subdivididas, de modo que os níveis mais altos contêm muitas comunidades pequenas e tematicamente específicas. Os resumos acompanham essa gradação, pois níveis baixos geram resumos longos e abstratos, que sintetizam grandes porções do corpus, ao passo que níveis altos geram resumos curtos e concretos, próximos do texto de origem. \citet{edge2024} avaliaram condições de nível de comunidade denominadas C0 a C3 e observaram um compromisso, em que os níveis intermediários tendem a favorecer o embasamento factual das respostas, enquanto os níveis mais agregados favorecem a abrangência ao custo de especificidade. Perguntas cuja resposta depende de detalhes concretos e localizados tendem, por isso, a se beneficiar de níveis mais granulares, ao passo que perguntas de sentido global favorecem níveis mais agregados.
 
 \begin{figure}[htb]
     \centering
@@ -132,21 +232,31 @@ Essa recursão produz os níveis de comunidade (\textit{community levels}), nív
     \label{fig:leiden-hierarquia}
 \end{figure}
 
+A detecção de comunidades por otimização da modularidade tem, contudo, uma limitação em grafos de conhecimento esparsos, nos quais o grau médio é baixo e a maior parte dos nós tem poucas conexões. Nesse regime, a modularidade admite um número muito grande de partições quase ótimas, e sementes aleatórias distintas ou pequenas perturbações nas arestas podem produzir comunidades estruturalmente diferentes, o que torna as comunidades do Leiden intrinsecamente não reprodutíveis \citep{hossain2026}. Como alternativa determinística, \citet{hossain2026} propõem substituir o Leiden pela decomposição em $k$-núcleos (\textit{k-core decomposition}). Um $k$-núcleo é o subgrafo conexo maximal em que todo nó tem ao menos $k$ vizinhos, e o número de núcleo de um nó é o maior $k$ para o qual ele pertence a um $k$-núcleo. A decomposição é única para cada grafo e organiza-o em camadas aninhadas, das mais externas e menos conectadas às mais internas e densas, como ilustra a Figura~\ref{fig:kcore}. A partir dela, os autores constroem uma hierarquia de comunidades de tamanho limitado e que preservam a conectividade interna, tratando à parte os nós residuais de menor grau.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{Cap03/figuras/hierarquia_kcore.pdf}
+    \caption[Decomposição em $k$-núcleos e hierarquia correspondente]{Decomposição em $k$-núcleos de um grafo de exemplo, à esquerda, com as camadas aninhadas do 1-núcleo ao 3-núcleo, e a árvore hierárquica correspondente produzida pelo método RkH (\textit{Residual-aware k-core Hierarchy}), à direita, na qual os nós residuais (\textit{Res}) de menor grau são tratados separadamente dos núcleos densos.}
+    \label{fig:kcore}
+    \par\smallskip{\footnotesize Fonte: \citet{hossain2026}, sob licença CC BY 4.0.}
+\end{figure}
+
 Na etapa de consulta, o GraphRAG oferece modos de busca distintos, que exploram o índice de maneiras diferentes e estão esquematizados na Figura~\ref{fig:modos-busca}. O modo \textit{basic} recupera diretamente as unidades de texto mais semelhantes à consulta, por similaridade vetorial, sem utilizar a estrutura do grafo, e equivale a um RAG convencional sobre o mesmo corpus. O modo \textit{local} parte da consulta para identificar as entidades mais relevantes no grafo e monta o contexto com essas entidades, sua vizinhança imediata, as relações que as conectam e as unidades de texto associadas, sendo adequado a perguntas centradas em entidades específicas. O modo \textit{global} destina-se a perguntas de sentido global e opera em \textit{map-reduce} sobre os resumos de comunidade de um dado nível, de modo que, na fase de \textit{map}, cada resumo é processado isoladamente para gerar respostas parciais com pontuação de utilidade e, na fase de \textit{reduce}, as respostas parciais mais úteis são combinadas em uma resposta final. O modo \textit{drift} combina as duas orientações em um processo iterativo, que inicia com uma consulta ampla aos resumos de comunidade e, a cada iteração, gera novas subperguntas e as refina com buscas locais, ampliando progressivamente o contexto. O modo \textit{drift} tende a produzir as respostas mais completas, ao custo de um número de chamadas ao LLM substancialmente maior que o dos demais modos.
 
 \begin{figure}[htb]
 \centering
 \begin{tikzpicture}[
   font=\footnotesize,
-  q/.style={draw, rounded corners, fill=gray!15, minimum width=13mm, minimum height=7mm, align=center},
+  q/.style={draw=black!45, line width=0.4pt, rounded corners=2pt, fill=vNeutro!55, minimum width=13mm, minimum height=7mm, align=center},
   lbl/.style={font=\footnotesize\itshape},
-  ch/.style={draw, fill=gray!5, minimum width=15mm, minimum height=3.6mm},
-  ent/.style={draw, circle, fill=gray!15, minimum size=4.5mm, inner sep=0},
-  sm/.style={draw, fill=gray!5, minimum width=10mm, minimum height=3.6mm},
+  ch/.style={draw=modoBasic!75!black, line width=0.4pt, fill=modoBasic!30, minimum width=15mm, minimum height=3.6mm},
+  ent/.style={draw=modoLocal!75!black, line width=0.4pt, circle, fill=modoLocal!30, minimum size=4.5mm, inner sep=0},
+  sm/.style={draw=modoGlobal!75!black, line width=0.4pt, fill=modoGlobal!22, minimum width=10mm, minimum height=3.6mm},
   note/.style={align=left, anchor=west, font=\scriptsize, text width=30mm},
-  arr/.style={-{Latex[length=1.6mm]}}
+  arr/.style={-{Latex[length=1.6mm]}, black!65}
 ]
-\node[lbl] at (-3.3,0) {basic};
+\node[lbl, text=modoBasic!85!black] at (-3.3,0) {\textbf{basic}};
 \node[q] (qb) at (-1.4,0) {consulta};
 \node[ch] (b1) at (1.9,0.5) {};
 \node[ch] (b2) at (1.9,0.0) {};
@@ -154,7 +264,7 @@ Na etapa de consulta, o GraphRAG oferece modos de busca distintos, que exploram 
 \draw[arr] (qb) -- (b2);
 \node[note] at (3.1,0) {unidades de texto por similaridade};
 
-\node[lbl] at (-3.3,-2) {local};
+\node[lbl, text=modoLocal!85!black] at (-3.3,-2) {\textbf{local}};
 \node[q] (ql) at (-1.4,-2) {consulta};
 \node[ent] (c) at (1.9,-2) {};
 \node[ent] (n1) at (1.0,-1.4) {};
@@ -165,20 +275,20 @@ Na etapa de consulta, o GraphRAG oferece modos de busca distintos, que exploram 
 \draw[arr] (ql) -- (c);
 \node[note] at (3.6,-2) {entidade central e vizinhança};
 
-\node[lbl] at (-3.3,-4) {global};
+\node[lbl, text=modoGlobal!85!black] at (-3.3,-4) {\textbf{global}};
 \node[q] (qg) at (-1.4,-4) {consulta};
 \node[sm] (s1) at (1.5,-3.4) {};
 \node[sm] (s2) at (1.5,-4.0) {};
 \node[sm] (s3) at (1.5,-4.6) {};
-\node[draw, rounded corners, minimum height=6mm] (red) at (3.4,-4) {\textit{reduce}};
+\node[draw=modoGlobal!75!black, line width=0.4pt, fill=modoGlobal!10, rounded corners=2pt, minimum height=6mm] (red) at (3.4,-4) {\textit{reduce}};
 \draw[arr] (qg) -- (s1); \draw[arr] (qg) -- (s2); \draw[arr] (qg) -- (s3);
 \draw[arr] (s1) -- (red); \draw[arr] (s2) -- (red); \draw[arr] (s3) -- (red);
 \node[note] at (4.4,-4) {\textit{map-reduce} sobre resumos de comunidade};
 
-\node[lbl] at (-3.3,-6) {drift};
+\node[lbl, text=modoDrift!85!black] at (-3.3,-6) {\textbf{drift}};
 \node[q] (qd) at (-1.4,-6) {consulta};
-\node[sm] (ds) at (1.5,-6) {resumos};
-\node[ent] (de) at (3.5,-6) {};
+\node[sm, draw=modoDrift!75!black, fill=modoDrift!25] (ds) at (1.5,-6) {resumos};
+\node[ent, draw=modoDrift!75!black, fill=modoDrift!25] (de) at (3.5,-6) {};
 \draw[arr] (qd) -- (ds);
 \draw[arr, bend left=30] (ds) to (de);
 \draw[arr, bend left=30] (de) to (ds);
@@ -188,7 +298,7 @@ Na etapa de consulta, o GraphRAG oferece modos de busca distintos, que exploram 
 \label{fig:modos-busca}
 \end{figure}
 
-O pipeline padrão do GraphRAG utiliza \textit{prompts} de extração genéricos, concebidos para corpora de domínio aberto, que reconhecem tipos de entidade amplos como pessoa, organização e local. O GraphRAG permite substituir esses \textit{prompts} por versões adaptadas a um domínio, seja por um procedimento automático de ajuste a partir de amostras do corpus, seja por edição manual. A customização define os tipos de entidade pertinentes ao domínio e fornece exemplos \textit{few-shot} alinhados ao vocabulário efetivamente empregado nos documentos. Em hepatologia, isso significa instruir o modelo a extrair entidades como doença hepática, achado laboratorial, exame de imagem e complicação, e ilustrar a extração com trechos representativos de evoluções clínicas, de modo que o grafo resultante reflita as distinções relevantes para a pergunta de pesquisa.
+O pipeline padrão do GraphRAG utiliza \textit{prompts} de extração genéricos, concebidos para corpora de domínio aberto, que reconhecem tipos de entidade amplos como pessoa, organização e local. O GraphRAG permite substituir esses \textit{prompts} por versões adaptadas a um domínio, seja por um procedimento automático de ajuste a partir de amostras do corpus, seja por edição manual. A customização define os tipos de entidade pertinentes ao domínio e fornece exemplos \textit{few-shot} alinhados ao vocabulário efetivamente empregado nos documentos. Em um domínio clínico, por exemplo, isso significa instruir o modelo a extrair entidades como doença, achado laboratorial, exame de imagem e complicação, e ilustrar a extração com trechos representativos do próprio corpus, de modo que o grafo resultante reflita as distinções relevantes para as perguntas que se pretende responder.
 
 O custo computacional é uma limitação prática incontornável do GraphRAG. A indexação exige uma chamada ao LLM por unidade de texto para a extração e uma chamada por comunidade para a geração de resumos, o que, em um corpus de centenas de documentos com milhares de comunidades, representa um volume elevado de inferências. A consulta também é onerosa, sobretudo nos modos \textit{global} e \textit{drift}, que multiplicam as chamadas ao percorrer resumos ou ao iterar. Esse custo, somado à latência, constitui barreira à adoção e motiva a avaliação criteriosa de quando o ganho de qualidade compensa o esforço adicional. Parte desse ganho, contudo, depende de como o modelo aproveita contextos longos, questão examinada a seguir.
 
@@ -211,9 +321,11 @@ O tamanho da janela de contexto dos LLMs cresceu de forma acelerada. Modelos amp
     ymin=0, ymax=1,
     xmin=1, xmax=20,
     domain=1:20, samples=100,
-    thick, tick style={draw=none}
+    thick, tick style={draw=none},
+    axis line style={black!45}, every axis label/.append style={font=\footnotesize}
 ]
-\addplot[smooth] {0.9 - 0.55*exp(-((x-10.5)^2)/40)};
+\addplot[smooth, very thick, color=vAzul, fill=vAzul!10, fill opacity=0.6] {0.9 - 0.55*exp(-((x-10.5)^2)/40)} \closedcycle;
+\addplot[smooth, very thick, color=vAzul] {0.9 - 0.55*exp(-((x-10.5)^2)/40)};
 \end{axis}
 \end{tikzpicture}
 \caption[Representação esquemática do fenômeno \textit{lost in the middle}]{Representação esquemática do fenômeno \textit{lost in the middle}. O desempenho é maior quando a informação relevante ocupa o início ou o fim do contexto e cai quando ela se encontra no meio, configurando a curva em U observada por \citet{liu2024}. A figura ilustra apenas o formato da relação, sem reproduzir valores específicos.}
@@ -224,17 +336,84 @@ O mecanismo por trás do fenômeno relaciona-se à forma como a atenção se dis
 
 Esse resultado tem implicação direta para os modos de busca do GraphRAG. O modo \textit{global} monta o contexto a partir dos resumos de várias comunidades, e o modo \textit{drift} acumula contexto ao longo de iterações sucessivas, de modo que ambos produzem \textit{prompts} substancialmente mais longos que os do modo \textit{local}, restrito à vizinhança de poucas entidades. Cabe a hipótese de que o ganho informacional de um contexto mais rico seja parcial ou integralmente anulado pela degradação da atenção sobre esse mesmo contexto. Se assim for, tem-se uma explicação plausível para observações recorrentes na literatura, em que abordagens de recuperação mais elaboradas não superam alternativas mais simples em tarefas nas quais a resposta depende de um trecho específico, e não de uma síntese ampla.
 
-A mesma tensão aparece na escolha do nível de comunidade. Níveis mais agregados geram resumos mais longos e abstratos, que ampliam o volume de texto no contexto sem necessariamente aproximá-lo do detalhe que a pergunta exige. Níveis mais granulares geram resumos mais curtos e concretos, que produzem um contexto menor e mais focado. Retomando o compromisso discutido na Seção~\ref{sec:graphrag}, para uma tarefa de classificação diagnóstica a combinação de contexto enxuto e específico tende a ser preferível, tanto por alinhar-se à natureza da tarefa quanto por reduzir a exposição ao efeito \textit{lost in the middle}.
+A mesma tensão aparece na escolha do nível de comunidade. Níveis mais agregados geram resumos mais longos e abstratos, que ampliam o volume de texto no contexto sem necessariamente aproximá-lo do detalhe que a pergunta exige. Níveis mais granulares geram resumos mais curtos e concretos, que produzem um contexto menor e mais focado. Retomando o compromisso discutido na Seção~\ref{sec:graphrag}, em tarefas cuja resposta depende de um detalhe específico do texto, a combinação de contexto enxuto e específico tende a ser preferível, tanto por alinhar-se à natureza da pergunta quanto por reduzir a exposição ao efeito \textit{lost in the middle}.
 
 A literatura descreve estratégias para atenuar a degradação em contextos longos. A reordenação do contexto procura colocar os trechos mais promissores nas extremidades do \textit{prompt}, onde a atenção é mais confiável. O \textit{reranking} aplica um segundo modelo, mais preciso que a busca inicial, para ordenar os trechos recuperados por relevância antes da montagem. A compressão de contexto resume ou filtra os trechos para eliminar redundância e reduzir o comprimento total. A recuperação seletiva limita deliberadamente a quantidade de material fornecido, sob a premissa de que menos contexto, porém mais pertinente, produz respostas melhores. Essas técnicas convergem para um mesmo princípio, o de que a qualidade da seleção importa mais que a quantidade de texto.
 
-Avaliar se um sistema de recuperação responde corretamente a uma pergunta com resposta bem definida exige, antes, um instrumental de métricas e testes estatísticos apropriado, tema da seção seguinte.
+Os fenômenos discutidos até aqui foram descritos, em geral, sobre textos de domínio aberto. O texto clínico impõe a esses sistemas dificuldades próprias, examinadas na seção seguinte.
 
-\section{Avaliação de Sistemas de Classificação}\label{sec:avaliacao}
+\section{Prontuários Eletrônicos e o Desafio do Texto Clínico}\label{sec:prontuarios}
+
+O prontuário eletrônico do paciente (PEP; em inglês, \textit{electronic health record}, EHR) é o registro longitudinal e digital das informações de saúde de um indivíduo, mantido por um ou mais serviços assistenciais e destinado a apoiar a continuidade do cuidado, a gestão e a pesquisa. Reúne dados de identificação, história clínica, evolução, prescrições, resultados de exames e desfechos, produzidos por profissionais distintos ao longo do tempo. Parte desse conteúdo é registrada em campos estruturados; parte, em texto livre redigido durante o atendimento.
+
+Os dados clínicos estruturados seguem modelos de representação e vocabulários padronizados que atribuem significado computável a cada item. Padrões de interoperabilidade como o HL7 e sua evolução, o FHIR (\textit{Fast Healthcare Interoperability Resources}), definem como as informações são organizadas e trocadas entre sistemas; terminologias como a Classificação Internacional de Doenças (CID-10) e o SNOMED-CT fornecem códigos unívocos para diagnósticos, procedimentos e achados. Quando presentes, esses elementos permitem consulta direta e agregação confiável. O texto livre, por outro lado, carrega grande parte do raciocínio clínico, como hipóteses, justificativas e nuances de evolução, sem qualquer marcação semântica, e é justamente onde reside grande parte da informação necessária para responder perguntas sobre o diagnóstico e a evolução do paciente.
+
+A falta de um formato padronizado limita o aproveitamento desses registros tanto por clínicos quanto por sistemas de aprendizado de máquina, o que motivou esforços de estruturação automática do texto clínico. Ao estruturar laudos radiológicos, \citet{moll2025} mostraram que modelos codificador-decodificador leves, com menos de 300 milhões de parâmetros, superaram oito LLMs abertos, de 1 a 70 bilhões de parâmetros, quando estes eram adaptados apenas por técnicas de \textit{prompt}. Alguns LLMs ajustados por LoRA obtiveram ganhos modestos sobre o modelo leve, mas a um custo computacional muito superior: no caso do LLaMA-3-70B, mais de 400 vezes o tempo de inferência, o custo e as emissões de carbono do modelo leve. Os autores apontam ainda a falta de transparência e as preocupações com a privacidade dos dados como obstáculos à implantação de LLMs em ambiente clínico. O resultado relativiza a premissa de que modelos maiores são sempre preferíveis para o texto clínico e evidencia um compromisso entre desempenho, custo e privacidade inerente ao emprego de modelos de linguagem em ambiente clínico.
+
+O texto clínico apresenta características que o tornam particularmente hostil ao processamento automático. Abreviações e siglas são abundantes e não padronizadas, variando entre serviços, especialidades e autores. A ortografia é irregular, com erros de digitação, ausência de acentuação e grafias alternativas. O estilo é telegráfico, com frases nominais, omissão de conectivos e pontuação idiossincrática. A negação e a incerteza são onipresentes, pois se registra com frequência aquilo que foi investigado e afastado, e hipóteses diagnósticas não confirmadas convivem no mesmo documento com diagnósticos estabelecidos, de modo que a simples ocorrência do nome de uma doença não implica que o paciente a tenha. A autoria múltipla acrescenta heterogeneidade de vocabulário e de estrutura ao longo de um mesmo prontuário. A Figura~\ref{fig:nota-clinica} reúne essas características em uma evolução fictícia.
+
+\begin{figure}[!htbp]
+\centering
+\newcommand{\mAbr}[1]{{\setlength{\fboxsep}{0.8pt}\colorbox{vAzul!22}{\strut #1}}}
+\newcommand{\mNeg}[1]{{\setlength{\fboxsep}{0.8pt}\colorbox{vVermelho!22}{\strut #1}}}
+\newcommand{\mInc}[1]{{\setlength{\fboxsep}{0.8pt}\colorbox{vAmbar!35}{\strut #1}}}
+\newcommand{\mGra}[1]{{\setlength{\fboxsep}{0.8pt}\colorbox{vRoxo!20}{\strut #1}}}
+\begin{tikzpicture}
+\node[draw=black!40, line width=0.4pt, rounded corners=2pt, fill=black!2, text width=0.84\textwidth, inner sep=8pt, align=left, font=\sffamily\small] (nota) {%
+\mAbr{Pac.} masc., 58a, \mAbr{HAS} e \mAbr{DM2} em uso de metformina 850mg 2x/dia. Refere dispneia aos \mGra{medios esforcos} \mGra{ha} 2 sem. \mNeg{Nega tabagismo e etilismo}. \mAbr{EF}: \mAbr{BEG}, corado, eupneico em repouso. \mAbr{HD}: \mInc{\mAbr{ICC}?} \mAbr{DPOC} \mInc{a esclarecer}. \mNeg{Afastada pneumonia} (\mAbr{RX} \mGra{torax} \mNeg{s/ alterações}). \mAbr{CD}: solicito \mAbr{ECO} e \mAbr{BNP}; retorno em 30d.};
+\node[below=5pt of nota, font=\scriptsize] {\chip{vAzul!22}abreviação\hspace{10pt}\chip{vVermelho!22}negação\hspace{10pt}\chip{vAmbar!35}incerteza\hspace{10pt}\chip{vRoxo!20}grafia irregular};
+\end{tikzpicture}
+\caption[Exemplo fictício de evolução clínica]{Exemplo fictício de evolução clínica, redigido para ilustrar características típicas do texto clínico: estilo telegráfico, abreviações não padronizadas, negação, incerteza diagnóstica e grafia irregular, como a ausência de acentuação.}
+\label{fig:nota-clinica}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
+\end{figure}
+
+Esses obstáculos são agravados no português clínico brasileiro pela escassez de recursos. Há poucos corpora clínicos anotados e de acesso restrito, não existe vocabulário controlado de referência amplamente adotado equivalente ao que se dispõe em inglês, e a maior parte dos modelos, ontologias e ferramentas de PLN clínico foi desenvolvida para o inglês, o que limita a transferência direta \citep{stammers2025,omar2025}. Traduções de terminologias internacionais nem sempre acompanham o uso efetivo dos profissionais brasileiros.
+
+A variação terminológica configura um problema de normalização de conceitos. Um mesmo achado clínico pode ser expresso por sigla, por sinônimo ou por nomenclatura de época distinta, e todas essas formas precisam ser reconhecidas como referentes à mesma entidade. No domínio hepatológico, a doença hepática gordurosa não alcoólica ilustra bem o fenômeno: as siglas DHGNA e NAFLD, a designação por extenso esteato-hepatite não alcoólica e, mais recentemente, os termos MASLD e MASH, adotados após revisão internacional da nomenclatura \citep{rinella2023}, remetem a condições do mesmo espectro. Um sistema que trate essas formas como conceitos independentes fragmenta a evidência e subestima a presença da doença.
+
+Comparado a outros gêneros textuais especializados, como o jurídico e o científico, o texto clínico é mais adverso para o PLN. Documentos jurídicos e artigos científicos são redigidos para leitura externa, seguem convenções de estrutura e citação, primam pela completude do argumento e passam por revisão editorial. A nota clínica é escrita sob pressão de tempo, como registro para o próprio autor e para colegas que compartilham o contexto do caso, e por isso admite elipse, abreviação e conteúdo implícito. A informação relevante costuma estar dispersa e pressupõe conhecimento que não foi verbalizado no documento.
+
+Extrair uma resposta confiável desse material exige fornecer ao modelo de linguagem trechos pertinentes do próprio prontuário, estratégia que a geração aumentada por recuperação e o GraphRAG, descritos nas Seções~\ref{sec:rag} e~\ref{sec:graphrag}, sistematizam. Avaliar se um sistema assim construído identifica corretamente as condições registradas exige, por sua vez, um instrumental de métricas e testes estatísticos apropriado, tema da seção seguinte.
+
+\section{Métricas de Avaliação de Desempenho}\label{sec:avaliacao}
 
 A avaliação de um sistema que atribui rótulos a exemplos começa pela caracterização do problema de classificação. Na classificação binária há duas classes mutuamente exclusivas, como a presença ou a ausência de uma condição. Na classificação multiclasse há mais de duas classes exclusivas, e cada exemplo recebe exatamente um rótulo. Na classificação multirrótulo um exemplo pode receber vários rótulos simultâneos, situação adequada quando as categorias não se excluem. A escolha entre esses formatos depende da estrutura do domínio e da forma como a tarefa é definida.
 
-O instrumento básico de análise é a matriz de confusão, que cruza os rótulos previstos com os verdadeiros. Dela derivam quatro contagens fundamentais: verdadeiros positivos (VP) e verdadeiros negativos (VN), em que a previsão coincide com a realidade, e falsos positivos (FP) e falsos negativos (FN), em que diverge. Em contexto diagnóstico, a assimetria entre os dois tipos de erro é relevante. Um falso negativo, deixar de identificar uma doença presente, pode retardar o tratamento e ter consequências graves; um falso positivo, atribuir uma doença ausente, gera investigação adicional e ansiedade, em geral com custo menor. Nenhuma métrica única captura essa assimetria, o que motiva a análise conjunta de várias.
+O instrumento básico de análise é a matriz de confusão, que cruza os rótulos previstos com os verdadeiros (Figura~\ref{fig:matriz-confusao}). Dela derivam quatro contagens fundamentais: verdadeiros positivos (VP) e verdadeiros negativos (VN), em que a previsão coincide com a realidade, e falsos positivos (FP) e falsos negativos (FN), em que diverge. Em contexto diagnóstico, a assimetria entre os dois tipos de erro é relevante. Um falso negativo, deixar de identificar uma doença presente, pode retardar o tratamento e ter consequências graves; um falso positivo, atribuir uma doença ausente, gera investigação adicional e ansiedade, em geral com custo menor. Nenhuma métrica única captura essa assimetria, o que motiva a análise conjunta de várias.
+
+\begin{figure}[!htbp]
+\centering
+\begin{tikzpicture}[font=\small]
+\def\w{2.6}\def\h{1.25}
+\node[font=\footnotesize\bfseries] at (\w,0.95) {Classe prevista};
+\node[font=\footnotesize] at (0.5*\w,0.4) {positiva};
+\node[font=\footnotesize] at (1.5*\w,0.4) {negativa};
+\node[font=\footnotesize\bfseries, rotate=90] at (-1.75,-\h) {Classe real};
+\node[font=\footnotesize, anchor=east] at (-0.1,-0.5*\h) {positiva};
+\node[font=\footnotesize, anchor=east] at (-0.1,-1.5*\h) {negativa};
+\path[fill=vVerde!28,   draw=white, line width=1.2pt] (0,0)      rectangle (\w,-\h);
+\path[fill=vLaranja!28, draw=white, line width=1.2pt] (\w,0)     rectangle (2*\w,-\h);
+\path[fill=vLaranja!28, draw=white, line width=1.2pt] (0,-\h)    rectangle (\w,-2*\h);
+\path[fill=vVerde!28,   draw=white, line width=1.2pt] (\w,-\h)   rectangle (2*\w,-2*\h);
+\node[align=center] at (0.5*\w,-0.5*\h) {\textbf{VP}\\{\scriptsize verdadeiro positivo}};
+\node[align=center] at (1.5*\w,-0.5*\h) {\textbf{FN}\\{\scriptsize falso negativo}};
+\node[align=center] at (0.5*\w,-1.5*\h) {\textbf{FP}\\{\scriptsize falso positivo}};
+\node[align=center] at (1.5*\w,-1.5*\h) {\textbf{VN}\\{\scriptsize verdadeiro negativo}};
+\draw[black!40, line width=0.4pt] (0,0) rectangle (2*\w,-2*\h);
+\node[draw=black!40, line width=0.4pt, rounded corners=2pt, anchor=west, inner sep=6pt, font=\footnotesize] at (2*\w+0.7,-\h) {%
+\renewcommand{\arraystretch}{2.0}%
+\begin{tabular}{@{}l@{\;}l@{}}
+Acurácia  & $=\dfrac{\mathrm{VP}+\mathrm{VN}}{\mathrm{VP}+\mathrm{VN}+\mathrm{FP}+\mathrm{FN}}$\\
+Precisão  & $=\dfrac{\mathrm{VP}}{\mathrm{VP}+\mathrm{FP}}$\\
+Revocação & $=\dfrac{\mathrm{VP}}{\mathrm{VP}+\mathrm{FN}}$\\
+F1        & $=\dfrac{2\cdot\text{Precisão}\cdot\text{Revocação}}{\text{Precisão}+\text{Revocação}}$
+\end{tabular}};
+\end{tikzpicture}
+\caption[Matriz de confusão e métricas derivadas]{Matriz de confusão de um problema binário, com os acertos em verde e os erros em laranja, e as métricas de classificação derivadas de suas quatro contagens.}
+\label{fig:matriz-confusao}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
+\end{figure}
 
 A acurácia, proporção de previsões corretas sobre o total, é intuitiva mas enganosa sob desbalanceamento de classes, pois um classificador que sempre prevê a classe majoritária pode alcançar acurácia alta sem qualquer utilidade. A precisão mede, entre os exemplos previstos como pertencentes a uma classe, a fração que de fato pertence; a revocação mede, entre os exemplos que pertencem à classe, a fração recuperada. O F1-score é a média harmônica entre precisão e revocação, e penaliza o desequilíbrio entre as duas. Em problemas com várias classes, o F1 macro calcula a média aritmética dos F1 por classe, atribuindo o mesmo peso a todas, enquanto o F1 ponderado pondera cada classe por seu suporte, o número de exemplos, o que faz as classes raras influírem pouco no valor final.
 
@@ -260,8 +439,6 @@ Uma alternativa à anotação humana é o uso de um LLM como avaliador, abordage
 
 A avaliação por LLM carrega vieses documentados \citep{zheng2023}. O viés de posição faz o modelo preferir de forma sistemática a alternativa apresentada em primeiro lugar em comparações par a par. O viés de verbosidade o inclina a favorecer respostas mais longas, independentemente de sua correção. Há ainda sensibilidade a variações na formulação do \textit{prompt} de avaliação, que alteram o resultado sem mudança de conteúdo. Auditorias recentes sugerem que parte dos ganhos relatados para sistemas GraphRAG avaliados dessa maneira pode ser atribuível a esses artefatos, e não a mérito real, e recomendam a randomização da ordem de apresentação das respostas como mitigação \textbf{[VERIFICAR REFERÊNCIA: auditoria recente sobre avaliação de GraphRAG por LLM]}.
 
-Em tarefas de classificação, nas quais a resposta é uma categoria verificável, a anotação humana especializada tem vantagem sobre a avaliação automática por LLM. Ela permite calcular métricas objetivas, como as discutidas acima, e aplicar testes de hipótese formais, além de não reintroduzir, no processo de avaliação, o mesmo tipo de modelo cujo desempenho se quer medir. Por isso este trabalho adota \textit{ground truth} anotado por especialista como base de avaliação.
+Em tarefas de classificação, nas quais a resposta é uma categoria verificável, a anotação humana especializada tem vantagem sobre a avaliação automática por LLM. Ela permite calcular métricas objetivas, como as discutidas acima, e aplicar testes de hipótese formais, além de não reintroduzir, no processo de avaliação, o mesmo tipo de modelo cujo desempenho se quer medir.
 
-\label{sec:estrutura-causal}As oito condições hepáticas avaliadas não são independentes entre si, e sua estrutura causal condiciona a formulação da tarefa. A esteatose hepática, a hepatite B e a hepatite C são causas frequentes de dano hepático crônico que pode evoluir para cirrose. A cirrose e a esquistossomose hepatoesplênica são causas de hipertensão portal, respectivamente nas formas cirrótica e não cirrótica. A hemorragia digestiva alta e a peritonite bacteriana espontânea são descompensações da doença hepática de base, associadas à hipertensão portal e à cirrose avançada. Um mesmo paciente pode, portanto, apresentar várias dessas condições encadeadas, o que motiva a formulação da tarefa como classificação multirrótulo: a cada prontuário associa-se o subconjunto das oito condições documentadas como presentes, em vez de uma única categoria. Ainda assim, a estrutura causal exige cuidado na distinção entre doença de base e complicação, de modo que a fronteira entre classes permanece um ponto sensível da avaliação, discutido na definição do critério de presença clara na Seção~\ref{sec:met-prompt}.
-
-Definidos os fundamentos, o próximo capítulo detalha a metodologia adotada para construir e avaliar os sistemas.
+Apresentados esses fundamentos, o próximo capítulo descreve a metodologia.

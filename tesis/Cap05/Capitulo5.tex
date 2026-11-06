@@ -10,41 +10,56 @@ A Tabela~\ref{tab:res-metricas-gerais} reúne as métricas agregadas dos seis si
 \centering
 \caption[Métricas agregadas dos seis sistemas avaliados]{Métricas agregadas dos seis sistemas avaliados sobre os 537 prontuários (531 para S8, conforme a Seção~\ref{sec:met-mcnemar}).}
 \label{tab:res-metricas-gerais}
-\begin{tabular}{lccccccc}
+\begin{tabular}{lccccc>{\columncolor{colunaDestaque}}cc}
 \toprule
 Sistema & Modo & Nível & EM & P$_{\text{macro}}$ & R$_{\text{macro}}$ & F1$_{\text{macro}}$ & F1$_{\text{micro}}$ \\
 \midrule
-S1 & \textit{basic} & 1 & 0,575 & 0,783 & 0,613 & 0,681 & 0,738 \\
-S2 & \textit{basic} & 2 & 0,566 & 0,852 & 0,592 & 0,689 & 0,721 \\
-S3 & \textit{local} & 1 & 0,581 & 0,858 & 0,635 & 0,718 & 0,750 \\
-S4 & \textit{local} & 2 & 0,587 & 0,858 & 0,672 & 0,743 & 0,739 \\
-S7 & \textit{drift}  & 1 & 0,596 & 0,648 & 0,946 & 0,745 & 0,825 \\
-S8 & \textit{drift}  & 2 & 0,625 & 0,707 & 0,948 & 0,798 & 0,850 \\
+S1 & \chip{modoBasic}\textit{basic} & 1 & 0,575 & 0,783 & 0,613 & 0,681 & 0,738 \\
+S2 & \chip{modoBasic}\textit{basic} & 2 & 0,566 & \tsecond{0,852} & 0,592 & 0,689 & 0,721 \\
+S3 & \chip{modoLocal}\textit{local} & 1 & 0,581 & \tfirst{0,858} & 0,635 & 0,718 & 0,750 \\
+S4 & \chip{modoLocal}\textit{local} & 2 & 0,587 & \tfirst{0,858} & 0,672 & 0,743 & 0,739 \\
+S7 & \chip{modoDrift}\textit{drift}  & 1 & \tsecond{0,596} & 0,648 & \tsecond{0,946} & \tsecond{0,745} & \tsecond{0,825} \\
+\rowcolor{linhaDestaque}S8 & \chip{modoDrift}\textit{drift}  & 2 & \tfirst{0,625} & 0,707 & \tfirst{0,948} & \cellcolor{colunaDestaque}\tfirst{0,798} & \tfirst{0,850} \\
 \bottomrule
 \end{tabular}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}. EM: acurácia de correspondência exata; P, R: precisão e revocação.}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}. EM: acurácia de correspondência exata; P, R: precisão e revocação. \tfirst{Vermelho} e \tsecond{azul}: melhor e segundo melhor valor de cada coluna; em destaque, o melhor sistema e a métrica principal (F1 macro).}
 \end{table}
 
 O padrão mais relevante da Tabela~\ref{tab:res-metricas-gerais} é a assimetria entre precisão e revocação no modo \textit{drift}: revocação macro de 94,6\% (S7) e 94,8\% (S8), contra 59,2\% a 67,2\% em \textit{basic} e \textit{local}, ao custo de precisão macro de 64,8\% a 70,7\%, inferior aos 78,3\% a 85,8\% dos demais modos. A Figura~\ref{fig:res-f1-sistemas} ilustra essa troca: o F1 macro mais alto do \textit{drift} é sustentado por uma cobertura muito superior, e não por acertos mais seletivos.
 
 \begin{figure}[!htbp]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-    ybar, bar width=14pt, width=0.95\textwidth, height=6.5cm,
-    symbolic x coords={S1,S2,S3,S4,S7,S8},
-    xtick=data, ymin=0, ymax=1,
-    ylabel={Valor da métrica},
-    legend style={at={(0.5,-0.18)}, anchor=north, legend columns=3},
-    ymajorgrids, grid style={gray!25},
-    nodes near coords, nodes near coords style={font=\tiny},
-    every node near coord/.append style={rotate=90, anchor=west},
-]
-\addplot[fill=blue!55] coordinates {(S1,0.783) (S2,0.852) (S3,0.858) (S4,0.858) (S7,0.648) (S8,0.707)};
-\addplot[fill=orange!70] coordinates {(S1,0.613) (S2,0.592) (S3,0.635) (S4,0.672) (S7,0.946) (S8,0.948)};
-\addplot[fill=ForestGreen!70] coordinates {(S1,0.681) (S2,0.689) (S3,0.718) (S4,0.743) (S7,0.745) (S8,0.798)};
-\legend{Precisão macro, Revocação macro, F1 macro}
-\end{axis}
+% Barras horizontais com rótulo interno e legenda em quadro arredondado,
+% no estilo de OA-RAG (arXiv:2610.36335). Uma cor por modo de busca.
+\begin{tikzpicture}[x=1cm, y=1cm, font=\footnotesize]
+\def\X{1.75}\def\W{3.75}\def\G{0.45}\def\H{0.27}
+\node[anchor=south, draw=black!40, line width=0.4pt, rounded corners=2pt, inner xsep=4pt, inner ysep=2pt, font=\scriptsize]
+  at ({\X+1.5*\W+\G},0.42) {\chip{modoBasic}\textit{basic}\hspace{8pt}\chip{modoLocal}\textit{local}\hspace{8pt}\chip{modoDrift}\textit{drift}};
+\foreach \k/\tit in {0/Precisão macro, 1/Revocação macro, 2/F1 macro}{
+  \pgfmathsetmacro{\x}{\X+\k*(\W+\G)}
+  \node[font=\footnotesize\bfseries, anchor=base, inner sep=1pt] at ({\x+\W/2},0.0) {\tit};
+  \foreach \t/\lab in {0/0, 0.25/{}, 0.5/{0,5}, 0.75/{}, 1/1}{
+    \draw[black!10, line width=0.4pt] ({\x+\W*\t},-0.15) -- ({\x+\W*\t},-3.20);
+    \node[anchor=north, inner sep=1.5pt, text=black!65, font=\scriptsize] at ({\x+\W*\t},-3.20) {\lab};
+  }
+  \draw[black!45, line width=0.4pt] (\x,-3.20) -- ({\x+\W},-3.20);
+}
+\foreach \s/\n/\c/\y/\p/\r/\f in {
+    S1/1/modoBasic/-0.40/0.783/0.613/0.681,
+    S2/2/modoBasic/-0.78/0.852/0.592/0.689,
+    S3/1/modoLocal/-1.43/0.858/0.635/0.718,
+    S4/2/modoLocal/-1.81/0.858/0.672/0.743,
+    S7/1/modoDrift/-2.46/0.648/0.946/0.745,
+    S8/2/modoDrift/-2.84/0.707/0.948/0.798}{
+  \node[anchor=east, inner sep=0pt] at ({\X-0.08},\y) {\s\ {\scriptsize\color{black!60}(nível \n)}};
+  \foreach \k/\v in {0/\p, 1/\r, 2/\f}{
+    \pgfmathsetmacro{\x}{\X+\k*(\W+\G)}
+    \path[fill=\c, draw=white, line width=0.45pt] (\x,{\y+\H/2}) rectangle ({\x+\W*\v},{\y-\H/2});
+    \node[anchor=east, inner sep=2pt, text=white, font=\scriptsize] at ({\x+\W*\v},\y)
+      {\pgfmathprintnumber[fixed, precision=3, fixed zerofill, use comma]{\v}};
+  }
+}
+\foreach \ys in {-1.105, -2.135}{\draw[black!25, line width=0.4pt] (0.2,\ys) -- ({\X+3*\W+2*\G},\ys);}
 \end{tikzpicture}
 \caption[Precisão, revocação e F1 macro por sistema]{Precisão, revocação e F1 macro por sistema. Os sistemas \textit{drift} (S7, S8) obtêm maior F1 pela revocação muito mais alta, não por precisão superior.}
 \label{fig:res-f1-sistemas}
@@ -64,9 +79,9 @@ A Tabela~\ref{tab:res-mcnemar} apresenta o resultado do teste de McNemar exato (
 \toprule
 Modo & $n$ & $b$ (só nível 1) & $c$ (só nível 2) & $p$-valor \\
 \midrule
-\textit{basic} & 537 & 45 & 40 & 0,665 \\
-\textit{local} & 537 & 44 & 47 & 0,834 \\
-\textit{drift} & 531 & 44 & 61 & 0,118 \\
+\chip{modoBasic}\textit{basic} & 537 & 45 & 40 & 0,665 \\
+\chip{modoLocal}\textit{local} & 537 & 44 & 47 & 0,834 \\
+\chip{modoDrift}\textit{drift} & 531 & 44 & 61 & 0,118 \\
 \bottomrule
 \end{tabular}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor. Nenhuma diferença é estatisticamente significativa ($\alpha = 0{,}05$).}
@@ -78,28 +93,38 @@ A Figura~\ref{fig:res-f1-doenca} compara o F1 por doença entre S1 (\textit{basi
 
 \begin{figure}[!htbp]
 \centering
-\begin{tikzpicture}
-\begin{axis}[
-    ybar, bar width=6pt, width=\textwidth, height=7.5cm,
-    symbolic x coords={Cirrose,Esquisto.,Hep.\,C,Hep.\,B,Esteatose,HP,HDA},
-    xtick=data, x tick label style={rotate=20, anchor=east, font=\footnotesize},
-    ymin=0, ymax=1, ylabel={F1 por classe},
-    legend style={at={(0.5,-0.28)}, anchor=north, legend columns=3},
-    ymajorgrids, grid style={gray!25},
-]
-\addplot[fill=gray!55] coordinates {
-    (Cirrose,0.627) (Esquisto.,0.691) (Hep.\,C,0.779) (Hep.\,B,0.864)
-    (Esteatose,0.882) (HP,0.700) (HDA,0.406)};
-\addplot[fill=blue!55] coordinates {
-    (Cirrose,0.602) (Esquisto.,0.735) (Hep.\,C,0.782) (Hep.\,B,0.882)
-    (Esteatose,0.869) (HP,0.726) (HDA,0.485)};
-\addplot[fill=orange!70] coordinates {
-    (Cirrose,0.808) (Esquisto.,0.741) (Hep.\,C,0.869) (Hep.\,B,0.851)
-    (Esteatose,0.936) (HP,0.897) (HDA,0.457)};
-\legend{S1 (\textit{basic}), S3 (\textit{local}), S7 (\textit{drift})}
-\end{axis}
+% Barra proporcional dentro de cada célula, como no painel de acurácia de
+% OA-RAG (arXiv:2610.36335); setas de ganho/perda (\gain/\loss) do mesmo artigo.
+\begin{tikzpicture}[x=1cm, y=1cm, font=\footnotesize]
+\def\X{3.95}\def\CW{3.05}\def\GX{0.22}\def\RH{0.44}\def\BH{0.27}
+\foreach \k/\tit/\c in {0/{S1 (\textit{basic})}/modoBasic, 1/{S3 (\textit{local})}/modoLocal, 2/{S7 (\textit{drift})}/modoDrift}{
+  \node[font=\footnotesize\bfseries, anchor=base, inner sep=1pt] at ({\X+\k*(\CW+\GX)+\CW/2},0.08) {\chip{\c}\tit};
+}
+\node[font=\footnotesize\bfseries, anchor=base, inner sep=1pt] at ({\X+3*(\CW+\GX)+0.62},0.08) {$\Delta$};
+\draw[black!45, line width=0.4pt] (-0.15,-0.08) -- ({\X+3*(\CW+\GX)+1.45},-0.08);
+\foreach \i/\nome/\a/\b/\d/\best/\delta in {
+    1/Cirrose hepática/0.627/0.602/0.808/2/{\gain{18,1}},
+    2/Esquistossomose/0.691/0.735/0.741/2/{\gain{5,0}},
+    3/Hepatite C/0.779/0.782/0.869/2/{\gain{9,0}},
+    4/Hepatite B/0.864/0.882/0.851/1/{\loss{1,3}},
+    5/Esteatose hepática/0.882/0.869/0.936/2/{\gain{5,4}},
+    6/Hipertensão portal/0.700/0.726/0.897/2/{\gain{19,7}},
+    7/{Hemorragia digestiva alta}/0.406/0.485/0.457/1/{\gain{5,1}}}{
+  \pgfmathsetmacro{\y}{-0.08-\i*\RH+\RH/2}
+  \node[anchor=east, inner sep=0pt] at ({\X-0.10},\y) {\nome};
+  \foreach \k/\v/\c in {0/\a/modoBasic, 1/\b/modoLocal, 2/\d/modoDrift}{
+    \pgfmathsetmacro{\x}{\X+\k*(\CW+\GX)}
+    \fill[black!5] (\x,{\y+\BH/2}) rectangle ({\x+\CW},{\y-\BH/2});
+    \path[fill=\c, draw=white, line width=0.45pt] (\x,{\y+\BH/2}) rectangle ({\x+\CW*\v},{\y-\BH/2});
+    \ifnum\k=\best\draw[black!75, line width=0.7pt] (\x,{\y+\BH/2}) rectangle ({\x+\CW*\v},{\y-\BH/2});\fi
+    \node[anchor=east, inner sep=2pt, text=white, font=\scriptsize] at ({\x+\CW*\v},\y)
+      {\ifnum\k=\best\bfseries\fi\pgfmathprintnumber[fixed, precision=3, fixed zerofill, use comma]{\v}};
+  }
+  \node[anchor=west, inner sep=0pt, font=\scriptsize] at ({\X+3*(\CW+\GX)+0.10},\y) {\delta};
+}
+\draw[black!45, line width=0.4pt] (-0.15,{-0.08-7*\RH}) -- ({\X+3*(\CW+\GX)+1.45},{-0.08-7*\RH});
 \end{tikzpicture}
-\caption[F1 por doença, três sistemas de nível 1]{F1 por doença nos três sistemas de nível 1.}
+\caption[F1 por doença, três sistemas de nível 1]{F1 por doença nos três sistemas de nível 1, com o melhor valor de cada doença contornado e, na coluna $\Delta$, a diferença, em pontos de F1, entre o \textit{drift} (S7) e o \textit{basic} (S1).}
 \label{fig:res-f1-doenca}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir de \texttt{metricas\_parcial\_sem\_global.csv}.}
 \end{figure}
@@ -108,18 +133,18 @@ As matrizes de confusão por doença (Figuras~\ref{fig:res-confusao-s7} e~\ref{f
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{Cap05/figuras/matriz_confusao_S7.png}
-\caption[Matrizes de confusão por doença, sistema S7]{Matrizes de confusão por doença, sistema S7 (\textit{drift}, nível 1).}
+\input{Cap05/figuras/matriz_confusao_S7.tex}
+\caption[Matrizes de confusão por doença, sistema S7]{Matrizes de confusão por doença, sistema S7 (\textit{drift}, nível 1). Cada célula traz a contagem e a proporção em relação à classe real, que também define a intensidade da cor; P e R são a precisão e a revocação da classe.}
 \label{fig:res-confusao-s7}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor com a biblioteca matplotlib.}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{Cap05/figuras/matriz_confusao_S8.png}
-\caption[Matrizes de confusão por doença, sistema S8]{Matrizes de confusão por doença, sistema S8 (\textit{drift}, nível 2).}
+\input{Cap05/figuras/matriz_confusao_S8.tex}
+\caption[Matrizes de confusão por doença, sistema S8]{Matrizes de confusão por doença, sistema S8 (\textit{drift}, nível 2). Cada célula traz a contagem e a proporção em relação à classe real, que também define a intensidade da cor; P e R são a precisão e a revocação da classe.}
 \label{fig:res-confusao-s8}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor com a biblioteca matplotlib.}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
 
 \section{Investigação do comportamento do modo \textit{drift}}\label{sec:res-investigacao}
@@ -138,10 +163,10 @@ O grupo A reúne 206 pares paciente/doença em que o \textit{drift} identifica c
 \toprule
 Hipótese & Medida & $p$-valor & Resultado \\
 \midrule
-H1 & Mediana de caracteres: A = 6.160, B = 3.230 & $<0,001$ & Confirmada \\
-H2 & Termo literal no texto: A = 69,4\%, B = 89,4\% & $<0,001$ & Confirmada \\
-H3 & Mediana de atendimentos: A = 2, B = 2 & 0,211 & Refutada \\
-H4 & Entidade canônica ausente do índice: A = 46,6\%, B = 45,7\% & 0,887 & Refutada \\
+H1 & Mediana de caracteres: A = 6.160, B = 3.230 & $<0,001$ & \tcok\ Confirmada \\
+H2 & Termo literal no texto: A = 69,4\%, B = 89,4\% & $<0,001$ & \tcok\ Confirmada \\
+H3 & Mediana de atendimentos: A = 2, B = 2 & 0,211 & \tcno\ Refutada \\
+H4 & Entidade canônica ausente do índice: A = 46,6\%, B = 45,7\% & 0,887 & \tcno\ Refutada \\
 \bottomrule
 \end{tabular}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor, \texttt{hipoteses\_drift\_resultado.json}.}
@@ -161,10 +186,10 @@ O grupo A desta investigação reúne 291 pares paciente/doença em que a doenç
 \toprule
 Hipótese & Medida & $p$-valor & Resultado \\
 \midrule
-H1 & Linguagem de risco/hipótese na justificativa do \textit{drift}: 39/291 (13,4\%) & -- & Fraca \\
-H2 & Mediana de caracteres: A = 4.307, B = 2.818 & $<0,001$ & Confirmada \\
-H3 & Termos de sangramento baixo em FP de HDA: A = 8,7\% ($n=69$), B = 2,8\% ($n=423$) & 0,040 & Confirmada \\
-H4 & Evidência citada não verbatim no texto do paciente: 49/354 (13,8\%) & -- & Fraca \\
+H1 & Linguagem de risco/hipótese na justificativa do \textit{drift}: 39/291 (13,4\%) & -- & {\color{vAmbar!85!black}$\sim$}\ Fraca \\
+H2 & Mediana de caracteres: A = 4.307, B = 2.818 & $<0,001$ & \tcok\ Confirmada \\
+H3 & Termos de sangramento baixo em FP de HDA: A = 8,7\% ($n=69$), B = 2,8\% ($n=423$) & 0,040 & \tcok\ Confirmada \\
+H4 & Evidência citada não verbatim no texto do paciente: 49/354 (13,8\%) & -- & {\color{vAmbar!85!black}$\sim$}\ Fraca \\
 \bottomrule
 \end{tabular}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor, \texttt{hipoteses\_drift\_erro\_resultado.json}.}

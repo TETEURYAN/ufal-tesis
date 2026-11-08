@@ -2,28 +2,28 @@
 
 Este capítulo descreve o percurso metodológico adotado para atingir o objetivo geral enunciado no Capítulo~\ref{cap:introducao}, o de desenvolver e avaliar uma abordagem baseada em GraphRAG para a extração de informações clínicas de prontuários eletrônicos de pacientes hepatopatas. Para tornar essa avaliação mensurável, a extração foi formulada como uma tarefa de classificação multirrótulo: dado o texto de um prontuário, o sistema deve indicar quais, dentre oito doenças hepáticas definidas previamente, estão claramente documentadas como presentes no paciente. A pergunta que orienta o trabalho não se limita a verificar se o sistema acerta, mas busca identificar qual configuração de busca do Microsoft GraphRAG apresenta melhor desempenho nesse tipo de extração clínica e por quais razões.
 
-As seções seguem a ordem cronológica de execução do trabalho, sintetizada na Figura~\ref{fig:met-visao-geral}. Inicialmente, apresentam-se os dados e as classes-alvo, seguidos da construção da amostra avaliada e de seus rótulos de referência. Em seguida, descrevem-se a construção do grafo de conhecimento, os modos de busca e os sistemas comparados, o \textit{prompt} de extração, o modelo de linguagem e a infraestrutura de execução. Por fim, detalham-se a conversão das respostas em classes, as métricas e os testes estatísticos, a análise qualitativa de erros e as limitações metodológicas. Os valores de desempenho obtidos são apresentados no capítulo de resultados; neste capítulo constam apenas os números que fundamentam decisões de projeto.
+O capítulo organiza-se em quatro etapas, que correspondem aos painéis da Figura~\ref{fig:met-visao-geral}. A Seção~\ref{sec:met-dados} apresenta a base de dados, as classes-alvo e a construção da amostra e dos rótulos de referência. A Seção~\ref{sec:met-grafo} descreve a construção do grafo de conhecimento pelo GraphRAG, incluindo o ajuste dos \textit{prompts} de indexação e a hierarquia de comunidades. A Seção~\ref{sec:met-sistemas} define os sistemas de consulta avaliados, o \textit{prompt} de extração e o modelo de linguagem empregado. Por fim, a Seção~\ref{sec:met-avaliacao} detalha a extração das respostas, as métricas, a comparação estatística entre níveis de comunidade, a investigação dirigida ao modo \textit{drift} e a análise qualitativa. Os valores de desempenho obtidos são apresentados no capítulo de resultados; neste capítulo constam apenas os números que fundamentam decisões de projeto.
 
 \begin{figure}[!htbp]
 \centering
 \resizebox{\textwidth}{!}{\input{Cap04/figuras/arquitetura_sistema.tex}}
-\caption[Arquitetura do sistema avaliado]{Arquitetura do sistema avaliado: (1) construção da amostra (Seção~\ref{sec:met-amostra}); (2) indexação pelo GraphRAG (Seção~\ref{sec:met-grafo}); (3) consulta pelos sistemas S1 a S8, com S5 e S6 esmaecidos por não terem sido concluídos (Seção~\ref{sec:met-sistemas}); e (4) extração e avaliação.}
+\caption[Arquitetura do sistema avaliado]{Arquitetura do sistema avaliado, em quatro etapas que estruturam este capítulo: (1) base de dados e construção da amostra (Seção~\ref{sec:met-dados}); (2) construção do grafo de conhecimento pelo GraphRAG (Seção~\ref{sec:met-grafo}); (3) consulta pelos sistemas S1 a S8, com S5 e S6 esmaecidos por não terem sido concluídos (Seção~\ref{sec:met-sistemas}); e (4) extração e avaliação (Seção~\ref{sec:met-avaliacao}).}
 \label{fig:met-visao-geral}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
 
-\section{Dados}\label{sec:met-dados}
+\section{Base de Dados}\label{sec:met-dados}
 
 Os dados utilizados são prontuários eletrônicos reais do ambulatório de hepatologia do Hospital Universitário da Universidade Federal de Alagoas (HU-UFAL), em Maceió, Alagoas.
 O corpus reúne 3.757 prontuários únicos, que totalizam 6.405 registros de atendimento. Cada prontuário corresponde à concatenação, em ordem cronológica, de todas as evoluções clínicas de um mesmo paciente, com os atendimentos individuais delimitados pelo marcador textual \texttt{-{}-{}- Atendimento -{}-{}-}. O conteúdo é predominantemente texto livre e exibe as características discutidas na Seção~\ref{sec:prontuarios}, como abreviações não padronizadas, estilo telegráfico e menções frequentes a hipóteses negadas ou não confirmadas.
 
 Quanto aos aspectos éticos, os prontuários foram anonimizados antes de qualquer uso neste trabalho.
 % TODO: descrever o procedimento de anonimização (ferramenta, categorias de dados removidas, verificação do resultado).
-Essa etapa é particularmente relevante porque, nas consultas da rodada final, o texto anonimizado dos prontuários foi enviado a um provedor externo de inferência, acessado por meio de uma interface de programação de aplicações (API), conforme a Seção~\ref{sec:met-modelo}, e não processado exclusivamente em ambiente local. A anonimização prévia constitui, portanto, a principal salvaguarda adotada em relação ao tratamento de dados pessoais sensíveis disciplinado pela Lei Geral de Proteção de Dados Pessoais (LGPD).
+A anonimização foi executada localmente, sem que nenhum dado identificável deixasse o ambiente da pesquisa, segundo o procedimento descrito por \textbf{[CITAR: artigo do método de anonimização]}. Somente o texto já anonimizado foi utilizado nas etapas seguintes, inclusive nas consultas da rodada final, enviadas a um provedor externo de inferência por meio de uma interface de programação de aplicações (API), conforme a Seção~\ref{sec:met-modelo}. A execução local da anonimização constitui, portanto, a principal salvaguarda adotada em relação ao tratamento de dados pessoais sensíveis disciplinado pela Lei Geral de Proteção de Dados Pessoais (LGPD).
 % TODO: citar o texto da LGPD (não há entrada no .bib).
 % TODO: informar parecer do CEP/CAAE.
 
-\section{Definição das classes-alvo}\label{sec:met-classes}
+\subsection{Classes-Alvo}\label{sec:met-classes}
 
 As oito classes avaliadas são cirrose hepática, esquistossomose, hepatite B, hepatite C, esteatose hepática, hipertensão portal, hemorragia digestiva alta (HDA) e peritonite bacteriana espontânea (PBE). Essas condições não foram selecionadas por critério estatístico nem descobertas de forma exploratória no texto: foram definidas \textit{a priori} por uma profissional de hepatologia, com base em sua relevância clínica no contexto do ambulatório de origem dos dados.
 
@@ -31,7 +31,7 @@ As oito classes avaliadas são cirrose hepática, esquistossomose, hepatite B, h
 
 A lista fixa de classes é o ponto de partida de todo o pipeline. Tanto a triagem de prontuários candidatos, descrita na Seção~\ref{sec:met-amostra}, quanto o \textit{prompt} de extração, apresentado na Seção~\ref{sec:met-prompt}, foram construídos em torno exatamente dessas oito categorias. Definidas as classes, o passo seguinte consistiu em selecionar os prontuários a avaliar e estabelecer, para cada um deles, o conjunto correto de doenças.
 
-\section{Construção da amostra e dos rótulos de referência}\label{sec:met-amostra}
+\subsection{Construção da Amostra e dos Rótulos de Referência}\label{sec:met-amostra}
 
 Os experimentos foram conduzidos sobre um conjunto de 537 prontuários extraído do corpus de 3.757. Esse conjunto não constitui amostra aleatória: foi construído por um funil de três etapas, representado no painel 1 da Figura~\ref{fig:met-visao-geral}. A escolha decorre do fato de que uma amostra aleatória simples teria prevalência baixa demais de cada uma das oito doenças, com número de casos positivos por classe insuficiente para uma avaliação multirrótulo. O funil contorna esse problema ao enriquecer a amostra com prontuários que plausivelmente mencionam as condições de interesse.
 
@@ -77,11 +77,13 @@ Nenhuma das oito doenças & 68 & \barcell{vCinza}{0.3175}{12,7} \\
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{table}
 
-\section{Construção do grafo de conhecimento}\label{sec:met-grafo}
+\section{Construção do Grafo de Conhecimento}\label{sec:met-grafo}
 
 Paralelamente à construção da amostra, o corpus foi indexado pelo GraphRAG. O índice foi construído uma única vez, antes de qualquer consulta, segundo o pipeline de indexação descrito na Seção~\ref{sec:graphrag} e representado no painel 2 da Figura~\ref{fig:met-visao-geral}. Esta seção não retoma o funcionamento geral de cada etapa, mas registra como ela foi aplicada ao corpus e quais estruturas resultaram.
 % TODO: confirmar se o índice cobre o corpus completo de 3.757 prontuários ou apenas a amostra de 537.
 % TODO: informar o modelo de linguagem e o modelo de embeddings usados na indexação, o tamanho das unidades de texto e a sobreposição entre elas.
+
+\subsection{Ajuste dos \texorpdfstring{\textit{Prompts}}{Prompts} de Indexação}\label{sec:met-prompt-tuning}
 
 Antes da indexação, executou-se o procedimento automático de ajuste de \textit{prompts} (\textit{prompt tuning}) oferecido pelo próprio GraphRAG, que gera \textit{prompts} de extração adaptados ao domínio a partir de uma amostra do corpus. A diferença mais relevante entre as versões genérica e ajustada está no \textit{prompt} de extração de entidades e relações. A versão genérica exige uma lista fixa de tipos de entidade, tipicamente categorias amplas de propósito geral, como pessoa, organização e local; a versão ajustada não fixa os tipos e solicita ao modelo que sugira categorias, tão gerais quanto possível, a partir do próprio conteúdo.
 
@@ -89,46 +91,15 @@ Em decorrência desse ajuste, os tipos de entidade observados no grafo final sã
 
 O cuidado com essa etapa tem respaldo na literatura. \citet{ye2026} relatam que o pipeline padrão do GraphRAG, aplicado a prontuários eletrônicos, produz granularidade excessiva, que degrada significativamente a recuperação: o \textit{prompt} original identificava cada parâmetro laboratorial como entidade independente, o que provocava uma proliferação acentuada de entidades. Os autores contornaram o problema com \textit{prompts} customizados para o domínio, que incluem a exigência de que cada registro contenha exatamente uma entidade do tipo paciente, à qual se vinculam diagnósticos, medicamentos e exames. Neste trabalho, o ajuste empregado foi o procedimento automático do próprio GraphRAG, sem regras explícitas dessa natureza, o que tem consequências para a estrutura do grafo discutidas na Seção~\ref{sec:res-grafos}.
 
+\subsection{Indexação e Hierarquia de Comunidades}\label{sec:met-hierarquia}
+
 A indexação propriamente dita compreendeu quatro etapas. Na segmentação (\textit{chunking}), o corpus foi dividido em 5.541 unidades de texto (\textit{text units}), unidade mínima à qual se vinculam tanto as entidades extraídas quanto os documentos de origem. Na extração de entidades e relações, um LLM leu cada unidade de texto e identificou entidades, como diagnósticos, exames, medicamentos, procedimentos e sinais clínicos, bem como as relações entre elas, o que resultou em um grafo com 26.966 entidades e 88.347 relações.
 
 A detecção de comunidades empregou a implementação hierárquica do algoritmo de Leiden \citep{traag2019} disponível na biblioteca graspologic, que particiona o grafo em grupos de nós densamente interconectados, maximizando a modularidade. O caráter recursivo do algoritmo, discutido na Seção~\ref{sec:graphrag}, faz com que as comunidades de um nível sejam subdivididas no nível seguinte, o que gerou uma hierarquia de 7 níveis, numerados de 0, o mais amplo, a 6, o mais granular. Cabe registrar que essa partição é puramente topológica: depende apenas de quais entidades estão conectadas e com que peso, sem nenhuma etapa semântica no agrupamento em si.
 
-Por fim, na geração de resumos de comunidade (\textit{community reports}), um LLM produziu, para cada comunidade, um resumo textual a partir das entidades, das relações e dos trechos de texto associados a ela. Esses resumos constituem o material consultado pelos modos \textit{global} e \textit{drift}. O índice resultante é comum a todos os sistemas; o que os distingue é a forma como cada modo de busca o percorre, tema da seção seguinte.
+Por fim, na geração de resumos de comunidade (\textit{community reports}), um LLM produziu, para cada comunidade, um resumo textual a partir das entidades, das relações e dos trechos de texto associados a ela. Esses resumos constituem o material consultado pelos modos \textit{global} e \textit{drift}. O índice resultante é comum a todos os sistemas; o que os distingue é a forma como cada modo de busca o percorre e o nível de comunidade adotado.
 
-\section{Modos de busca e sistemas avaliados}\label{sec:met-sistemas}
-
-Com o índice construído, cada consulta, composta pelo texto de um prontuário e pelo \textit{prompt} de extração, pode ser respondida por quatro modos de busca, cujo funcionamento geral foi apresentado na Seção~\ref{sec:graphrag} e na Figura~\ref{fig:modos-busca}. No modo \textit{basic}, não há uso estruturado do grafo: como o texto do prontuário já está embutido na própria consulta, o modo opera essencialmente como uma chamada direta ao modelo de linguagem, sem recuperação adicional a partir do índice.
-% TODO: conferir com a Seção 2.5, que descreve o basic como recuperação de unidades de texto por similaridade vetorial; se houve recuperação de unidades de texto nesta configuração, ajustar o texto.
-O modo \textit{local} recupera contexto centrado nas entidades relevantes para a consulta, com suas relações diretas e as unidades de texto de origem. Seu desempenho depende diretamente do que foi extraído na indexação, pois uma entidade que não foi criada nessa etapa não pode ser recuperada depois.
-
-O modo \textit{global} percorre os resumos de comunidade, seja de um nível fixo da hierarquia, seja, quando a seleção dinâmica de comunidades (\textit{dynamic community selection}) está ativa, navegando a hierarquia de forma adaptativa a partir do nível 0 e avaliando a relevância de cada comunidade antes de decidir se desce mais um nível. O modo \textit{drift} combina as orientações local e global de forma iterativa: realiza uma varredura inicial (\textit{primer}), gera perguntas de acompanhamento (\textit{follow-ups}) com base no que já foi encontrado, configuradas para até 6 por consulta, e executa buscas locais específicas para cada uma delas, refinando a resposta em múltiplas rodadas.
-
-\subsection{Desenho experimental}\label{sec:met-desenho}
-
-O cruzamento dos quatro modos de busca com dois níveis de comunidade, 1 e 2, produz os oito sistemas apresentados na Tabela~\ref{tab:met-sistemas}. O desenho prevê que todos sejam avaliados lado a lado sobre os mesmos 537 prontuários, com o mesmo \textit{prompt} de extração e o mesmo modelo de linguagem, de forma que o modo de busca seja a principal variável isolada na comparação, e o nível de comunidade, a variável secundária. Os sistemas S5 e S6, correspondentes ao modo \textit{global}, integram o desenho, mas não foram concluídos de forma confiável com o modelo adotado, pelos motivos expostos na Seção~\ref{sec:met-limitacoes}; a comparação efetiva restringe-se, por isso, aos seis sistemas restantes.
-% TODO: esclarecer se S5 e S6 usaram seleção dinâmica de comunidades e como o nível 1 ou 2 se aplica nesse caso.
-
-\begin{table}[!htbp]
-\centering
-\caption[Sistemas avaliados, por modo de busca e nível de comunidade]{Sistemas avaliados, definidos pelo cruzamento entre modo de busca e nível de comunidade.}
-\label{tab:met-sistemas}
-\begin{tabular}{lcc}
-\toprule
-Modo de busca & Nível 1 & Nível 2 \\
-\midrule
-\chip{modoBasic}\textit{basic}  & S1 & S2 \\
-\chip{modoLocal}\textit{local}  & S3 & S4 \\
-\chip{modoGlobal}\textit{global} & {\color{black!45}S5} & {\color{black!45}S6} \\
-\chip{modoDrift}\textit{drift}  & S7 & S8 \\
-\bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor. Em cinza, os sistemas não concluídos de forma confiável (Seção~\ref{sec:met-limitacoes}).}
-\end{table}
-
-Uma consequência do desenho merece registro. Como o modo \textit{basic} não utiliza a estrutura do grafo, o nível de comunidade não interfere na montagem do seu contexto, de modo que S1 e S2 correspondem, na prática, a duas execuções independentes da mesma configuração. Esse par oferece, assim, uma referência da variação entre execuções atribuível ao próprio modelo, útil para interpretar as diferenças entre níveis observadas nos demais modos.
-% TODO: confirmar que, na configuração usada, o parâmetro de nível de comunidade não altera o comportamento do modo basic.
-
-\subsection{Escolha dos níveis de comunidade}\label{sec:met-niveis}
+\subsection{Escolha dos Níveis de Comunidade}\label{sec:met-niveis}
 
 A hierarquia produzida pelo algoritmo de Leiden possui 7 níveis, e a Tabela~\ref{tab:met-niveis} mostra como o número e o tamanho das comunidades variam ao longo dela. O nível 0 foi descartado por conter apenas 46 comunidades, com tamanho médio de 543,6 entidades. A distribuição é fortemente assimétrica, com mediana de apenas 5 entidades, o que indica que poucas comunidades muito grandes concentram a maior parte do grafo. Utilizá-lo agregaria, em uma mesma comunidade, informação de muitos pacientes e de temas heterogêneos, o que é incompatível com uma tarefa que exige granularidade por paciente. Esse perfil é característico das hierarquias produzidas pelo algoritmo de Leiden em grafos de conhecimento, que tendem a ser dominadas por poucas comunidades grandes e cujos tamanhos variam amplamente entre níveis, o que torna irregular a qualidade dos resumos gerados a partir delas \citep{hossain2026}. Os mesmos autores defendem comunidades de tamanho limitado e que preservem a conectividade interna como as mais adequadas à recuperação e à sumarização, critério com o qual é compatível a escolha descrita a seguir.
 
@@ -152,23 +123,46 @@ Nível & Comunidades & Tamanho médio & Tamanho mediano \\
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir do índice construído. Em destaque, os níveis adotados.}
 \end{table}
 
-Os níveis mais profundos foram descartados por razões opostas. O nível 3 apresenta o maior número de comunidades da hierarquia (1.959), com mediana de 4 entidades, o que amplia o custo computacional dos modos que percorrem comunidades inteiras, como o \textit{global}, e aumenta o risco de separar entidades clinicamente relacionadas em comunidades distintas. Nos níveis 4 a 6, o número de comunidades volta a diminuir, enquanto a relação entre tamanho médio e mediano se torna irregular, sem ganho evidente de especificidade. Os níveis 1 e 2, com 501 e 1.475 comunidades e medianas de 5 e 6 entidades, ocupam a faixa intermediária da hierarquia: são finos o suficiente para separar temas clínicos distintos, sem a fragmentação e o custo dos níveis mais profundos, em consonância com o compromisso entre abrangência e especificidade discutido na Seção~\ref{sec:graphrag}.
+Os níveis mais profundos foram descartados por razões opostas. O nível 3 apresenta o maior número de comunidades da hierarquia (1.959), com mediana de 4 entidades, o que amplia o custo computacional dos modos que percorrem comunidades inteiras, como o \textit{global}, e aumenta o risco de separar entidades clinicamente relacionadas em comunidades distintas. Nos níveis 4 a 6, o número de comunidades volta a diminuir, enquanto a relação entre tamanho médio e mediano se torna irregular, sem ganho evidente de especificidade. Além disso, a partir do nível 3 a hierarquia deixa de recobrir o grafo inteiro, pois o algoritmo só subdivide as comunidades que excedem um tamanho máximo: enquanto os níveis 0 a 2 abrangem de 88\% a 93\% das entidades, os níveis 3 a 6 abrangem cerca de 70\%, 35\%, 19\% e 15\%. Os níveis 1 e 2, com 501 e 1.475 comunidades e medianas de 5 e 6 entidades, ocupam a faixa intermediária da hierarquia: são finos o suficiente para separar temas clínicos distintos, sem a fragmentação, a cobertura parcial e o custo dos níveis mais profundos.
 
-Avaliar os dois níveis, em vez de escolher um único \textit{a priori}, permite verificar empiricamente se a escolha do nível afeta o desempenho. Essa verificação foi feita por meio do teste estatístico descrito a seguir.
+A restrição a dois níveis, em vez da avaliação de toda a hierarquia, decorre de duas razões. A primeira é o custo: cada nível adicional acrescenta quatro sistemas, um por modo de busca, cada um com 537 consultas, e somente no modo \textit{drift}, com duração média de 214 segundos por consulta (Seção~\ref{sec:met-modelo}), um sistema demanda cerca de 32 horas de inferência sequencial; avaliar os sete níveis implicaria 28 sistemas, e não 8. A segunda é que dois níveis adjacentes bastam para a pergunta formulada, a de saber se a granularidade das comunidades altera o desempenho na faixa útil da hierarquia. Escolha semelhante aparece na literatura: \citet{edge2024} avaliaram quatro níveis e observaram diferenças de qualidade pequenas entre eles, com custo crescente nos mais granulares, e \citet{wang2026archrag} compararam o GraphRAG em apenas dois níveis, 1 e 2. O nível 2 corresponde, ainda, ao valor padrão do nível de comunidade nas consultas do Microsoft GraphRAG, na versão empregada (2.7.0), e o nível 1, ao nível imediatamente mais agregado. Avaliar os dois níveis, em vez de fixar um único \textit{a priori}, permite ainda verificar empiricamente se a escolha do nível afeta o desempenho. Definido o índice, a seção seguinte descreve como ele é consultado pelos sistemas avaliados.
 
-\subsection{Comparação entre níveis: teste de McNemar exato}\label{sec:met-mcnemar}
+\section{Sistemas de Consulta}\label{sec:met-sistemas}
 
-Para verificar se a escolha entre os níveis 1 e 2 produz diferença estatisticamente significativa, aplicou-se, para cada modo de busca, o teste de McNemar exato \citep{mcnemar1947} sobre o acerto exato por paciente (\textit{exact match}, definido na Seção~\ref{sec:met-metricas}).
-O teste é pareado porque os mesmos pacientes são avaliados nos dois níveis de um mesmo modo. Para cada paciente, registra-se se o conjunto de doenças previsto coincide integralmente com o de referência em cada nível, e apenas os pares discordantes entram na estatística: $b$ denota o número de pacientes acertados somente no nível 1, e $c$, o número de pacientes acertados somente no nível 2.
+Com o índice construído, cada consulta, composta pelo texto de um prontuário e pelo \textit{prompt} de extração, é respondida por um dos sistemas avaliados, representados no painel 3 da Figura~\ref{fig:met-visao-geral}. Esta seção define esses sistemas, o \textit{prompt} de extração e o modelo de linguagem que responde às consultas.
 
-Sob a hipótese nula de que os dois níveis têm a mesma probabilidade de acerto, cada par discordante tem igual chance de favorecer qualquer um deles, de modo que $b$ segue distribuição binomial com $n = b + c$ tentativas e probabilidade $1/2$. A versão exata do teste calcula o p-valor bilateral diretamente dessa distribuição, conforme a Equação~\eqref{eq:mcnemar}, sem recorrer à aproximação pela distribuição qui-quadrado, o que a torna adequada mesmo quando o número de discordâncias é pequeno. Adotou-se nível de significância de 5\%.
-% TODO: no modo drift o teste foi aplicado a 531 pacientes, e não a 537; explicar a diferença (por exemplo, pacientes sem resposta válida em um dos níveis), se confirmado.
-\begin{equation}
-p = \min\left(1,\; 2\sum_{k=0}^{\min(b,c)} \binom{n}{k}\left(\frac{1}{2}\right)^{n}\right)
-\label{eq:mcnemar}
-\end{equation}
+\subsection{Modos de Busca e Desenho Experimental}\label{sec:met-desenho}
 
-\section{\texorpdfstring{\textit{Prompt}}{Prompt} de extração}\label{sec:met-prompt}
+Cada consulta pode ser respondida por quatro modos de busca, cujo funcionamento geral foi apresentado na Seção~\ref{sec:graphrag} e na Figura~\ref{fig:modos-busca}. No modo \textit{basic}, não há uso estruturado do grafo: como o texto do prontuário já está embutido na própria consulta, o modo opera essencialmente como uma chamada direta ao modelo de linguagem, sem recuperação adicional a partir do índice.
+% TODO: conferir com a Seção 2.5, que descreve o basic como recuperação de unidades de texto por similaridade vetorial; se houve recuperação de unidades de texto nesta configuração, ajustar o texto.
+O modo \textit{local} recupera contexto centrado nas entidades relevantes para a consulta, com suas relações diretas e as unidades de texto de origem. Seu desempenho depende diretamente do que foi extraído na indexação, pois uma entidade que não foi criada nessa etapa não pode ser recuperada depois.
+
+O modo \textit{global} percorre os resumos de comunidade, seja de um nível fixo da hierarquia, seja, quando a seleção dinâmica de comunidades (\textit{dynamic community selection}) está ativa, navegando a hierarquia de forma adaptativa a partir do nível 0 e avaliando a relevância de cada comunidade antes de decidir se desce mais um nível. O modo \textit{drift} combina as orientações local e global de forma iterativa: realiza uma varredura inicial (\textit{primer}), gera perguntas de acompanhamento (\textit{follow-ups}) com base no que já foi encontrado, configuradas para até 6 por consulta, e executa buscas locais específicas para cada uma delas, refinando a resposta em múltiplas rodadas.
+
+O cruzamento dos quatro modos de busca com dois níveis de comunidade, 1 e 2, produz os oito sistemas apresentados na Tabela~\ref{tab:met-sistemas}. O desenho prevê que todos sejam avaliados lado a lado sobre os mesmos 537 prontuários, com o mesmo \textit{prompt} de extração e o mesmo modelo de linguagem, de forma que o modo de busca seja a principal variável isolada na comparação, e o nível de comunidade, a variável secundária. Os sistemas S5 e S6, correspondentes ao modo \textit{global}, integram o desenho, mas não foram concluídos de forma confiável com o modelo adotado: o mecanismo de seleção dinâmica de comunidades pode gerar um volume desproporcional de chamadas ao modelo, de até cerca de 547 por consulta no pior caso, quando o nível inicial da hierarquia não contém comunidades relevantes e a busca recorre integralmente ao nível seguinte, e as tentativas de ajustar esse mecanismo não resolveram o problema sem custo relevante de qualidade. A comparação efetiva restringe-se, por isso, aos seis sistemas restantes.
+% TODO: esclarecer se S5 e S6 usaram seleção dinâmica de comunidades e como o nível 1 ou 2 se aplica nesse caso.
+
+\begin{table}[!htbp]
+\centering
+\caption[Sistemas avaliados, por modo de busca e nível de comunidade]{Sistemas avaliados, definidos pelo cruzamento entre modo de busca e nível de comunidade.}
+\label{tab:met-sistemas}
+\begin{tabular}{lcc}
+\toprule
+Modo de busca & Nível 1 & Nível 2 \\
+\midrule
+\chip{modoBasic}\textit{basic}  & S1 & S2 \\
+\chip{modoLocal}\textit{local}  & S3 & S4 \\
+\chip{modoGlobal}\textit{global} & {\color{black!45}S5} & {\color{black!45}S6} \\
+\chip{modoDrift}\textit{drift}  & S7 & S8 \\
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor. Em cinza, os sistemas não concluídos de forma confiável.}
+\end{table}
+
+Uma consequência do desenho merece registro. Como o modo \textit{basic} não utiliza a estrutura do grafo, o nível de comunidade não interfere na montagem do seu contexto, de modo que S1 e S2 correspondem, na prática, a duas execuções independentes da mesma configuração. Esse par oferece, assim, uma referência da variação entre execuções atribuível ao próprio modelo, útil para interpretar as diferenças entre níveis observadas nos demais modos.
+% TODO: confirmar que, na configuração usada, o parâmetro de nível de comunidade não altera o comportamento do modo basic.
+
+\subsection{\texorpdfstring{\textit{Prompt}}{Prompt} de Extração}\label{sec:met-prompt}
 
 O \textit{prompt} enviado em cada consulta passou por três versões ao longo do trabalho, cada uma voltada a corrigir um problema concreto identificado na análise de erros das versões anteriores. As três compartilham uma estrutura comum. Todas solicitam explicitamente que o modelo indique quais das oito doenças estão claramente documentadas como presentes, entendendo-se por isso diagnóstico explícito, exame confirmatório ou estadiamento formal. Todas truncam o texto do prontuário em 8.000 caracteres e exigem que a resposta seja delimitada pelas marcas \texttt{<RESPOSTA>} e \texttt{</RESPOSTA>}, com uma doença por linha no formato ``nome da doença: trecho que confirma''.
 
@@ -197,12 +191,12 @@ A versão 3 acrescentou um bloco explícito com três confusões recorrentes ide
 A versão 3 é a versão final do \textit{prompt} e foi empregada nos sistemas S1 a S4 na rodada definitiva. Uma vez fixado o \textit{prompt}, as consultas passam a depender do modelo de linguagem que as responde e da infraestrutura que as executa, descritos a seguir.
 % TODO: informar qual versão do prompt foi usada em S7 e S8 (drift) na rodada final; a fonte registra apenas que a versão 3 foi "testada isoladamente no drift".
 
-\section{Modelo de linguagem e infraestrutura de execução}\label{sec:met-modelo}
+\subsection{Modelo de Linguagem e Infraestrutura de Execução}\label{sec:met-modelo}
 
 A rodada que produziu os resultados reportados no Capítulo~\ref{cap:resultados} -- os oito sistemas sobre os 537 prontuários -- utilizou o modelo \texttt{inclusionai/ling-2.6-flash}, acessado pelo serviço de roteamento OpenRouter. Trata-se de um modelo instrucional, sem etapa de raciocínio expandido, o que mantém a latência baixa e previsível: a duração média observada no modo \textit{drift} (o mais custoso, por encadear múltiplas chamadas) foi de 214 segundos por consulta, com mediana de 190 segundos.
 % TODO: informar temperatura e demais parâmetros de decodificação, se fixados, e o provedor/custo por token do ling-2.6-flash na rodada final.
 
-Houve, posteriormente, uma tentativa de migrar todos os sistemas para \texttt{inclusionai/ling-3.0-flash}, um modelo de raciocínio híbrido (\textit{hybrid reasoning}) da mesma família, com o objetivo de uniformizar o modelo entre todas as comparações. Essa tentativa, no entanto, não foi concluída: cobriu apenas os modos \textit{basic} e \textit{local} (S1 a S4), e os modos \textit{global} e \textit{drift} não chegaram a produzir um conjunto de resultados confiável nessa migração, pelos motivos discutidos na Seção~\ref{sec:met-limitacoes}. Os resultados do Capítulo~\ref{cap:resultados}, portanto, referem-se integralmente à rodada em \texttt{ling-2.6-flash}, e não à tentativa de migração para \texttt{ling-3.0-flash}.
+Houve, posteriormente, uma tentativa de migrar todos os sistemas para \texttt{inclusionai/ling-3.0-flash}, um modelo de raciocínio híbrido (\textit{hybrid reasoning}) da mesma família, com o objetivo de uniformizar o modelo entre todas as comparações. Essa tentativa, no entanto, não foi concluída: cobriu apenas os modos \textit{basic} e \textit{local} (S1 a S4), e os modos \textit{global} e \textit{drift} não chegaram a produzir um conjunto de resultados confiável nessa migração, pelos motivos discutidos a seguir. Os resultados do Capítulo~\ref{cap:resultados}, portanto, referem-se integralmente à rodada em \texttt{ling-2.6-flash}, e não à tentativa de migração para \texttt{ling-3.0-flash}.
 % TODO: revisar esta seção à luz da tentativa de migração: decidir se os
 % resultados parciais em ling-3.0-flash (S1-S4) devem ser citados no
 % capítulo de resultados como comparação complementar, e registrar
@@ -220,13 +214,17 @@ O segundo ajuste diz respeito ao esforço de raciocínio. O parâmetro correspon
 
 O terceiro ajuste foi a paralelização das consultas, uma vez que a execução original, sequencial, era inviável em escala com um modelo de raciocínio lento. A concorrência foi ajustada empiricamente por modo de busca, a partir da medição do uso de memória por processo, já que o limite efetivo era a memória da máquina local, e não o limite de requisições da API. Adotaram-se seis processos simultâneos no modo \textit{basic}, três no modo \textit{local}, que consome cerca de 1,3~GB por processo, quase o dobro do \textit{basic}, e dois nos modos \textit{global} e \textit{drift}.
 
-\section{Extração da resposta}\label{sec:met-parser}
+\section{Avaliação}\label{sec:met-avaliacao}
+
+A resposta de cada consulta foi convertida em um conjunto de doenças previstas e comparada aos rótulos de referência, etapa representada no painel 4 da Figura~\ref{fig:met-visao-geral}. Esta seção descreve a extração da resposta, as métricas de classificação, a comparação estatística entre níveis de comunidade, as hipóteses formuladas sobre o modo \textit{drift} e a análise qualitativa de erros e do grafo.
+
+\subsection{Extração da Resposta}\label{sec:met-parser}
 
 Embora delimitada por marcas, a resposta de cada consulta é texto livre e precisa ser convertida em um conjunto de classes positivas. Essa conversão foi feita por um \textit{parser} determinístico, aplicado de forma idêntica a todos os sistemas e em todas as análises, a fim de garantir a comparabilidade dos resultados. O \textit{parser} percorre o trecho delimitado linha a linha em busca dos oito nomes canônicos e de variações mapeadas, com correspondência restrita a palavras inteiras. Uma linha só é contada como predição positiva se não contiver nenhum marcador de negação de uma lista auditada e corrigida ao longo do trabalho, que inclui, entre outros, ``ausente'', ``descartado'', ``negativo'', ``não confirmado'', ``nega'' e ``NR''.
 
 Uma exceção a essa regra foi introduzida após uma auditoria de falsos negativos. Menções a carga viral negativa ou indetectável do vírus da hepatite B (HBV), registrada como PCR-HBV ou HBV-DNA, não são tratadas como negação da doença, pois indicam tratamento supressor bem-sucedido em paciente já diagnosticado com hepatite B crônica: a terapia da hepatite B é supressora, e não curativa, e o paciente permanece com a doença mesmo com carga viral indetectável. A exceção não se estende à hepatite C, cujo tratamento com antivirais de ação direta é frequentemente curativo, de modo que um PCR negativo para o vírus da hepatite C (HCV) após o tratamento costuma indicar doença de fato resolvida. Um teste realizado antes de restringir a correção à hepatite B confirmou que aplicá-la também à hepatite C produzia falsos positivos.
 
-\section{Métricas e análise estatística}\label{sec:met-metricas}
+\subsection{Métricas de Classificação}\label{sec:met-metricas}
 
 Para cada sistema e cada classe $c$, os pares formados por paciente e doença foram classificados em verdadeiros positivos ($\mathrm{VP}_c$), falsos positivos ($\mathrm{FP}_c$), falsos negativos ($\mathrm{FN}_c$) e verdadeiros negativos ($\mathrm{VN}_c$), por comparação entre o conjunto previsto e os rótulos de referência. A partir dessas contagens, calcularam-se a precisão, a revocação (\textit{recall}) e o F1 de cada classe, conforme as definições da Seção~\ref{sec:avaliacao}. Essas métricas foram agregadas de duas formas, sendo $C$ o conjunto das oito classes. A agregação macro calcula a média simples entre as classes, atribuindo a todas o mesmo peso independentemente da prevalência, conforme a Equação~\eqref{eq:f1-macro}, e de forma análoga para a precisão e a revocação:
 \begin{equation}
@@ -254,7 +252,19 @@ A acurácia por rótulo, definida na Equação~\eqref{eq:ar}, considera cada com
 \label{eq:ar}
 \end{equation}
 
-\subsection{Investigação do comportamento do modo \texorpdfstring{\textit{drift}}{drift}}\label{sec:met-hipoteses}
+\subsection{Comparação entre Níveis: Teste de McNemar Exato}\label{sec:met-mcnemar}
+
+Para verificar se a escolha entre os níveis 1 e 2 produz diferença estatisticamente significativa, aplicou-se, para cada modo de busca, o teste de McNemar exato \citep{mcnemar1947} sobre o acerto exato por paciente (\textit{exact match}, definido na Seção~\ref{sec:met-metricas}).
+O teste é pareado porque os mesmos pacientes são avaliados nos dois níveis de um mesmo modo. Para cada paciente, registra-se se o conjunto de doenças previsto coincide integralmente com o de referência em cada nível, e apenas os pares discordantes entram na estatística: $b$ denota o número de pacientes acertados somente no nível 1, e $c$, o número de pacientes acertados somente no nível 2.
+
+Sob a hipótese nula de que os dois níveis têm a mesma probabilidade de acerto, cada par discordante tem igual chance de favorecer qualquer um deles, de modo que $b$ segue distribuição binomial com $n = b + c$ tentativas e probabilidade $1/2$. A versão exata do teste calcula o p-valor bilateral diretamente dessa distribuição, conforme a Equação~\eqref{eq:mcnemar}, sem recorrer à aproximação pela distribuição qui-quadrado, o que a torna adequada mesmo quando o número de discordâncias é pequeno. Adotou-se nível de significância de 5\%.
+% TODO: no modo drift o teste foi aplicado a 531 pacientes, e não a 537; explicar a diferença (por exemplo, pacientes sem resposta válida em um dos níveis), se confirmado.
+\begin{equation}
+p = \min\left(1,\; 2\sum_{k=0}^{\min(b,c)} \binom{n}{k}\left(\frac{1}{2}\right)^{n}\right)
+\label{eq:mcnemar}
+\end{equation}
+
+\subsection{Hipóteses sobre o Modo \texorpdfstring{\textit{Drift}}{Drift}}\label{sec:met-hipoteses}
 
 A comparação entre os sistemas revelou um padrão sistemático no comportamento do modo \textit{drift}, relatado no capítulo de resultados, que motivou uma investigação dedicada ao mecanismo subjacente. Trata-se, portanto, de uma análise conduzida \textit{a posteriori}, cujo desenho se descreve aqui. Foram comparados dois grupos de pares formados por prontuário e doença presente nos rótulos de referência. O grupo A reúne os casos em que o modo \textit{drift} identifica corretamente a doença e a maioria dos sistemas \textit{basic} e \textit{local} não a identifica; o grupo B reúne todos os demais casos positivos e funciona como controle.
 % TODO: especificar se o acerto do drift considera S7, S8 ou ambos e qual o critério de "maioria" entre S1 a S4.
@@ -270,23 +280,13 @@ Quatro hipóteses foram formuladas, cada uma associada a um teste estatístico f
 
 A escolha dos testes segue a natureza de cada variável. Comprimento do texto e número de atendimentos são variáveis quantitativas sem pressuposto de normalidade, razão pela qual se empregou o teste U de Mann-Whitney \citep{mann_whitney1947}, não paramétrico, que dispensa esse pressuposto. A presença do termo literal e a ausência da entidade canônica são variáveis binárias, comparadas entre os grupos pelo teste qui-quadrado de Pearson \citep{pearson1900}. Adotou-se, também aqui, nível de significância de 5\%. A hipótese H4 originou-se da análise detalhada do subgrafo de um paciente específico, descrita na seção seguinte, e foi submetida ao teste justamente para verificar se o mecanismo observado nesse caso se generaliza para a amostra.
 
-\section{Análise qualitativa de erros e visualização do grafo}\label{sec:met-qualitativa}
+\subsection{Análise Qualitativa de Erros e do Grafo}\label{sec:met-qualitativa}
 
 Como apoio à investigação qualitativa dos erros, foram gerados subgrafos de entidades e relações por paciente, desenhados com as bibliotecas NetworkX e matplotlib em leiaute de força dirigida de Fruchterman-Reingold e coloridos por comunidade.
 % TODO: citar Fruchterman e Reingold (1991); não há entrada no .bib.
 Essas visualizações serviram para ilustrar mecanismos de erro específicos, como o de uma entidade sinônima de uma doença alocada em comunidade diferente daquela que contém a entidade correspondente ao nome canônico, no mesmo paciente, situação compatível com o caráter puramente topológico do agrupamento descrito na Seção~\ref{sec:met-grafo}.
 
 O procedimento foi depois generalizado para todos os 537 prontuários, com uma imagem por paciente, e complementado por uma comparação visual dos seis maiores subgrafos da amostra e por uma análise estrutural agregada da distribuição de entidades, relações e comunidades por prontuário. Essa análise tem caráter exploratório: orienta a formulação de hipóteses, como a H4, que só são tomadas como gerais após o teste estatístico correspondente.
-
-\section{Limitações metodológicas}\label{sec:met-limitacoes}
-
-O desenho descrito apresenta limitações que condicionam a interpretação dos resultados. A primeira decorre do modelo de linguagem: por ser de raciocínio híbrido, o \texttt{ling-3.0-flash} introduz alta variância de latência e de custo, o que compromete a reprodutibilidade do tempo de execução e, em pelo menos um caso, inviabilizou a conclusão, dentro de prazo razoável, de uma validação experimental planejada, relatada no capítulo de resultados. A segunda refere-se à PBE, cujos 2 casos positivos são insuficientes para qualquer métrica estatisticamente confiável sobre essa classe.
-
-A terceira limitação diz respeito aos rótulos de referência, que podem conter discordâncias pontuais não resolvidas. Durante a correção do \textit{parser} de negação, identificou-se ao menos um caso em que a predição do modelo parecia clinicamente mais correta que o próprio rótulo de referência. A quarta refere-se à amostra, enriquecida por triagem textual: a prevalência das classes nela observada não deve ser lida como estimativa epidemiológica da população do ambulatório, e o grupo sem doença não equivale a um controle aleatório, como discutido na Seção~\ref{sec:met-amostra}.
-
-A quinta limitação é a ausência de resultados confiáveis para os sistemas do modo \textit{global} (S5 e S6). O mecanismo de seleção dinâmica de comunidades pode gerar um volume desproporcional de chamadas ao modelo, de até cerca de 547 por consulta no pior caso, quando o nível inicial da hierarquia não contém comunidades relevantes e a busca recorre integralmente ao nível seguinte. Tentativas de ajustar os parâmetros desse mecanismo não resolveram o problema sem custo relevante de qualidade. Por essa razão, esses sistemas não foram concluídos de forma confiável com o modelo adotado, e a comparação efetivamente realizada contempla os modos \textit{basic}, \textit{local} e \textit{drift}.
-
-A sexta limitação diz respeito à própria partição em comunidades. Em grafos de conhecimento esparsos, a otimização da modularidade admite um número muito grande de partições quase ótimas, de modo que sementes aleatórias distintas ou pequenas perturbações nas arestas podem produzir comunidades estruturalmente diferentes, o que torna as comunidades do Leiden intrinsecamente não reprodutíveis nesse tipo de grafo \citep{hossain2026}. Como o índice foi construído uma única vez, os resultados por nível de comunidade refletem uma realização particular dessa partição, e a estabilidade das comunidades entre execuções da indexação não foi avaliada.
 
 % =====================================================================
 % TODO: PENDÊNCIAS DESTE CAPÍTULO

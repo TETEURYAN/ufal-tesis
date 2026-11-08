@@ -253,3 +253,23 @@ AB  - Large Language Models (LLMs) have significantly impacted medical Natural L
 ID  - lilli2025
 LA  - en
 ER  - 
+
+TY  - CPAPER
+TI  - ArchRAG: Attributed Community-based Hierarchical Retrieval-Augmented Generation
+AU  - Wang, Shu
+AU  - Fang, Yixiang
+AU  - Zhou, Yingli
+AU  - Liu, Xilin
+AU  - Ma, Yuchi
+T2  - Proceedings of the AAAI Conference on Artificial Intelligence
+PY  - 2026
+VL  - 40
+IS  - 19
+SP  - 15868
+EP  - 15876
+DO  - 10.1609/aaai.v40i19.38619
+UR  - https://doi.org/10.1609/aaai.v40i19.38619
+N1  - Preprint: arXiv:2502.09891 (doi:10.48550/arXiv.2502.09891).
+ID  - wang2026archrag
+LA  - en
+ER  - 

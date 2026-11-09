@@ -1,0 +1,18 @@
+% Gerado por experiments/grid_search/gera_figuras_tikz_tese.py -- não editar à mão
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.78\textwidth, height=4.6cm, clip=false,
+  xmode=log, log basis x=10, xmin=50, xmax=4e5,
+  ytick={1,2}, yticklabels={Acerto, Erro}, ymin=0.4, ymax=2.6,
+  xlabel={Tamanho do texto do prontuário (caracteres, escala logarítmica)},
+  tick label style={font=\scriptsize}, label style={font=\footnotesize},
+  axis lines=left, axis line style={black!45}, tick style={black!45},
+  xmajorgrids, grid style={black!10},
+  log ticks with fixed point, /pgf/number format/use comma, /pgf/number format/1000 sep={.},
+]
+\addplot[boxplot prepared={lower whisker=604, lower quartile=1652, median=3076, upper quartile=7581, upper whisker=38570, draw position=1}, fill=vAzul!35, draw=vAzul!80!black, line width=0.6pt] coordinates {};
+\addplot[boxplot prepared={lower whisker=841, lower quartile=1981, median=3802, upper quartile=9180, upper whisker=39215, draw position=2}, fill=vLaranja!35, draw=vLaranja!80!black, line width=0.6pt] coordinates {};
+\node[anchor=west, font=\scriptsize, text=black!70] at (axis cs:44356,1) {$n = 7.955$; mediana: 3.076 caracteres};
+\node[anchor=west, font=\scriptsize, text=black!70] at (axis cs:45097,2) {$n = 589$; mediana: 3.802 caracteres};
+\end{axis}
+\end{tikzpicture}

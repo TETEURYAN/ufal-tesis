@@ -70,7 +70,7 @@
 	\thispagestyle{empty}
 	
 	\begin{minipage}{1\textwidth}
-		\raggedleft \includegraphics[height=35mm]{Cap00/IC.jpg}
+		\raggedleft \includegraphics[height=35mm]{Cap00/logo_ic.png}
 	\end{minipage}
 
 	\vfill

@@ -1,0 +1,14 @@
+% Painel 2x4 com imagens reais das oito doenças (Wikimedia Commons; créditos na legenda da figura).
+\newcommand{\painelDoenca}[2]{%
+  \begin{minipage}[t]{0.24\textwidth}\centering
+    \includegraphics[width=\linewidth]{Cap01/figuras/doencas/#1}\\[2pt]
+    {\footnotesize #2}
+  \end{minipage}}%
+\painelDoenca{a_esteatose}{(a) Esteatose hepática}\hfill
+\painelDoenca{b_hepatite_b}{(b) Hepatite B}\hfill
+\painelDoenca{c_hepatite_c}{(c) Hepatite C}\hfill
+\painelDoenca{d_cirrose}{(d) Cirrose}\\[6pt]
+\painelDoenca{e_esquistossomose}{(e) Esquistossomose}\hfill
+\painelDoenca{f_hipertensao_portal}{(f) Hipertensão portal}\hfill
+\painelDoenca{g_hda}{(g) Hemorragia digestiva alta}\hfill
+\painelDoenca{h_pbe}{(h) Ascite (PBE)}

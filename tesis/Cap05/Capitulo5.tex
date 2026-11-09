@@ -1,6 +1,6 @@
 \chapter{Resultados e discussão}\label{cap:resultados}
 
-Este capítulo apresenta os resultados da avaliação descrita no Capítulo~\ref{cap:metodologia}, na mesma ordem em que os métodos foram apresentados: primeiro o panorama agregado entre os seis sistemas comparáveis (\textit{basic}, \textit{local} e \textit{drift}, nos níveis de comunidade 1 e 2), em seguida o desempenho por doença, a investigação dirigida ao comportamento do modo \textit{drift} nas duas direções de erro e, por fim, a análise qualitativa de grafos. Os sistemas S5 e S6 (modo \textit{global}) não constam das comparações por não terem sido concluídos de forma confiável, pelos motivos expostos na Seção~\ref{sec:met-desenho}.
+Este capítulo apresenta os resultados da avaliação descrita no Capítulo~\ref{cap:metodologia}: primeiro o panorama agregado entre os seis sistemas comparáveis (\textit{basic}, \textit{local} e \textit{drift}, nos níveis de comunidade 1 e 2), em seguida o desempenho por doença, a investigação dirigida ao comportamento do modo \textit{drift} nas duas direções de erro e, por fim, a análise qualitativa de grafos. Os sistemas S5 e S6 (modo \textit{global}) não constam das comparações por não terem sido concluídos de forma confiável, pelos motivos expostos na Seção~\ref{sec:met-desenho}.
 
 \section{Panorama agregado}\label{sec:res-panorama}
 
@@ -151,7 +151,7 @@ H4 & Entidade canônica ausente do índice: A = 46,6\%, B = 45,7\% & 0,887 & \tc
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor, \texttt{hipoteses\_drift\_resultado.json}.}
 \end{table}
 
-Os prontuários do grupo A são significativamente mais longos (H1) e mencionam o termo literal da doença com menor frequência (H2): nesses casos, a doença precisa ser inferida a partir de evidência indireta espalhada por um texto mais extenso, exatamente a situação em que a varredura iterativa do \textit{drift} (primer e até seis buscas locais de acompanhamento, Seção~\ref{sec:met-sistemas}) tem vantagem estrutural sobre uma única passagem de \textit{basic} ou \textit{local}. O resultado converge com o de \citet{guo2026}, que, no primeiro estudo sistemático da recuperação iterativa em GraphRAG, observam que a recuperação estática falha quando está ausente a evidência-ponte que conecta entidades disjuntas, e que múltiplas rodadas de seleção de evidência são uma alternativa promissora justamente nesses casos. O número de atendimentos (H3) não discrimina os grupos, o que indica que o efeito é de dispersão da evidência dentro do texto, e não de volume do histórico. A hipótese H4, motivada pelo estudo de caso individual do paciente 1800283 (Seção~\ref{sec:res-grafos}), não se generaliza para a amostra: a ausência da entidade canônica no índice ocorre em proporção semelhante nos dois grupos, de modo que o mecanismo de dispersão entre comunidades observado naquele caso específico não é a explicação predominante do padrão agregado.
+Os prontuários do grupo A são significativamente mais longos (H1) e mencionam o termo literal da doença com menor frequência (H2): nesses casos, a doença precisa ser inferida a partir de evidência indireta espalhada por um texto mais extenso, exatamente a situação em que a varredura iterativa do \textit{drift} (primer e até seis buscas locais de acompanhamento, Seção~\ref{sec:met-sistemas}) tem vantagem estrutural sobre uma única passagem de \textit{basic} ou \textit{local}. O resultado converge com o de \citet{guo2026}, que, no primeiro estudo sistemático da recuperação iterativa em GraphRAG, observam que a recuperação estática falha quando está ausente a evidência-ponte que conecta entidades disjuntas, e que múltiplas rodadas de seleção de evidência são uma alternativa promissora justamente nesses casos. O número de atendimentos (H3) não discrimina os grupos, o que indica que o efeito é de dispersão da evidência dentro do texto, e não de volume do histórico. A hipótese H4, motivada pelo estudo de caso individual do paciente A (Seção~\ref{sec:res-grafos}), não se generaliza para a amostra: a ausência da entidade canônica no índice ocorre em proporção semelhante nos dois grupos, de modo que o mecanismo de dispersão entre comunidades observado naquele caso específico não é a explicação predominante do padrão agregado.
 
 \subsection{Por que o \textit{drift} erra onde os demais acertam}\label{sec:res-investigacao-erro}
 
@@ -180,49 +180,43 @@ A Figura~\ref{fig:res-acerto-erro-tamanho} ilustra esse padrão sobre todos os p
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.92\textwidth]{Cap05/figuras/grafico_acertos_erros_drift.png}
-\caption[Acerto e erro do \textit{drift} por tamanho do prontuário]{Acerto e erro do \textit{drift} (S7 e S8) por tamanho do texto do prontuário. Cada ponto é um par paciente-doença avaliado; as linhas verticais marcam a mediana de cada grupo.}
+\input{Cap05/figuras/acertos_erros_drift.tex}
+\caption[Acerto e erro do \textit{drift} por tamanho do prontuário]{Tamanho do texto do prontuário nos pares paciente-doença em que o \textit{drift} (S7 e S8) acerta e erra. As caixas vão do primeiro ao terceiro quartil, a linha interna marca a mediana e as hastes se estendem do 5º ao 95º percentil; o eixo horizontal está em escala logarítmica.}
 \label{fig:res-acerto-erro-tamanho}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
 
 A hipótese H3, específica de HDA, é a única das duas investigações a isolar estatisticamente o mecanismo da terceira categoria de doença discutida na Seção~\ref{sec:res-por-doenca}: termos de sangramento baixo (hemorroida, fissura anal, hematoquezia) aparecem em quase o triplo da proporção dos falsos positivos de HDA em comparação ao controle (8,7\% contra 2,8\%, $p=0,040$). Isso confirma estatisticamente, pela primeira vez, a hipótese qualitativa de confusão anatômica entre sangramento alto e baixo levantada durante a análise de erros (Seção~\ref{sec:met-qualitativa}) e que fundamentou o bloco do \textit{prompt} de extração dedicado a essa distinção (Seção~\ref{sec:met-prompt}).
 
-As hipóteses H1 e H4 têm suporte qualitativo, mas proporção abaixo do limiar adotado para considerá-las confirmadas (13,4\% e 13,8\%, respectivamente). Ainda assim, os casos individuais que as motivaram permanecem informativos: no paciente 890194, por exemplo, o texto afirma explicitamente ``hipertensão portal não cirrótica'', e o \textit{drift} lista cirrose mesmo com a negação textual explícita; no paciente 1028182, o sistema confunde o diagnóstico de um familiar (tio com cirrose, mencionado no histórico familiar) com o do próprio paciente, e também confunde ``varizes em membros inferiores'' (varizes de perna) com varizes esofágicas, pela recorrência da palavra ``varizes'' fora do território anatômico correto.
+As hipóteses H1 e H4 têm suporte qualitativo, mas proporção abaixo do limiar adotado para considerá-las confirmadas (13,4\% e 13,8\%, respectivamente). Ainda assim, os casos individuais que as motivaram permanecem informativos: no paciente B, por exemplo, o texto afirma explicitamente ``hipertensão portal não cirrótica'', e o \textit{drift} lista cirrose mesmo com a negação textual explícita; no paciente C, o sistema confunde o diagnóstico de um familiar (tio com cirrose, mencionado no histórico familiar) com o do próprio paciente, e também confunde ``varizes em membros inferiores'' (varizes de perna) com varizes esofágicas, pela recorrência da palavra ``varizes'' fora do território anatômico correto.
 
-O Quadro~\ref{quadro:negacao-ignorada} reproduz o trecho relevante do paciente 890194 lado a lado com a resposta do \textit{drift}, e o Quadro~\ref{quadro:alucinacao} faz o mesmo para um caso de hepatite B (paciente 592097, Seção~\ref{sec:res-panorama}) em que o sistema cita um resultado de exame que não existe em nenhuma parte do texto do prontuário.
+O Quadro~\ref{quadro:negacao-ignorada} reproduz o trecho relevante do paciente B lado a lado com a resposta do \textit{drift}, e o Quadro~\ref{quadro:alucinacao} faz o mesmo para um caso de hepatite B (paciente D, Seção~\ref{sec:res-panorama}) em que o sistema cita um resultado de exame que não existe em nenhuma parte do texto do prontuário.
 
-\begin{tcolorbox}[
-    colback=gray!5, colframe=gray!60, title={Negação explícita ignorada -- paciente 890194},
-    label=quadro:negacao-ignorada, fonttitle=\bfseries
-]
+\begin{quadro}[label=quadro:negacao-ignorada]{Negação explícita ignorada -- paciente B}
 \textbf{Trecho do prontuário:} ``Hipertensão portal não-cirrótica: esquistossomose hepatoesplênica.''
 
 \textbf{Resposta do \textit{drift} (S7):} ``Cirrose hepática: apresenta hepatomegalia, esplenectomia, sintomas de insuficiência hepática e sinais de fibrose periportal na USG.''
-\end{tcolorbox}
+\end{quadro}
 
-\begin{tcolorbox}[
-    colback=gray!5, colframe=gray!60, title={Citação de exame inexistente no texto -- paciente 592097},
-    label=quadro:alucinacao, fonttitle=\bfseries
-]
+\begin{quadro}[label=quadro:alucinacao]{Citação de exame inexistente no texto -- paciente D}
 \textbf{Trecho do prontuário:} ``[...] Solicito novo laboratório, incluindo sorologias virais, IGG e cinética do ferro.'' Não há, em nenhum outro ponto do texto, menção a HBsAg ou a qualquer sorologia para hepatite B já realizada.
 
 \textbf{Resposta do \textit{drift} (S7):} ``Hepatite B: `HBsAg positivo' (sorologia 05/06/23).''
-\end{tcolorbox}
+\end{quadro}
 
 \section{Análise qualitativa do grafo de conhecimento}\label{sec:res-grafos}
 
-Para ilustrar o mecanismo topológico por trás de parte dos erros do \textit{drift}, a Figura~\ref{fig:res-subgrafo-1800283} mostra o subgrafo do paciente 1800283, destacando as comunidades de nível 1 às quais suas entidades pertencem. O caso evidencia que entidades do mesmo paciente podem ser alocadas em comunidades distintas quando o agrupamento de Leiden é puramente topológico (Seção~\ref{sec:met-grafo}): uma entidade sinônima da doença-alvo, criada a partir de uma menção textual diferente da forma canônica, pode cair em uma comunidade diferente daquela que contém a entidade canônica correspondente, mesmo referindo-se ao mesmo paciente e à mesma condição clínica.
+Para ilustrar o mecanismo topológico por trás de parte dos erros do \textit{drift}, a Figura~\ref{fig:res-subgrafo-paciente-a} mostra o subgrafo do paciente A, destacando as comunidades de nível 1 às quais suas entidades pertencem. O caso evidencia que entidades do mesmo paciente podem ser alocadas em comunidades distintas quando o agrupamento de Leiden é puramente topológico (Seção~\ref{sec:met-grafo}): uma entidade sinônima da doença-alvo, criada a partir de uma menção textual diferente da forma canônica, pode cair em uma comunidade diferente daquela que contém a entidade canônica correspondente, mesmo referindo-se ao mesmo paciente e à mesma condição clínica.
 
 \begin{figure}[!htbp]
 \centering
-\includegraphics[width=0.85\textwidth]{Cap05/figuras/subgrafo_paciente_1800283_comunidades_457_460.png}
-\caption[Subgrafo do paciente 1800283, por comunidade]{Subgrafo do paciente 1800283, com destaque para as comunidades de nível 1 que concentram suas entidades (comunidades 457 e 460). Entidades fora dessas comunidades aparecem em cinza.}
-\label{fig:res-subgrafo-1800283}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas NetworkX e matplotlib.}
+\resizebox{\textwidth}{!}{\input{Cap05/figuras/subgrafo_paciente_A.tex}}
+\caption[Subgrafo do paciente A, por comunidade]{Subgrafo do paciente A, com destaque para as comunidades de nível 1 que concentram suas entidades (comunidades 457 e 460). Entidades fora dessas comunidades aparecem em cinza.}
+\label{fig:res-subgrafo-paciente-a}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor, com leiaute calculado pela biblioteca NetworkX.}
 \end{figure}
 
-A Figura~\ref{fig:res-maiores-grafos} generaliza a observação, comparando os seis maiores subgrafos entre os 537 prontuários da amostra, e a Figura~\ref{fig:res-estrutura-agregada} resume estatisticamente a estrutura dos subgrafos de todos os pacientes com dado disponível no índice (536 de 537). O número de entidades e o número de relações por prontuário são fortemente correlacionados ($r=0,959$), com mediana de 38 entidades e 81 relações por paciente, e cada paciente tem suas entidades distribuídas, em média, por comunidades que correspondem a 55\% do número de entidades -- ou seja, a fragmentação entre comunidades observada no caso do paciente 1800283 não é um evento isolado, mas uma característica estrutural recorrente do índice.
+A Figura~\ref{fig:res-maiores-grafos} generaliza a observação, comparando os seis maiores subgrafos entre os 537 prontuários da amostra, e a Figura~\ref{fig:res-estrutura-agregada} resume estatisticamente a estrutura dos subgrafos de todos os pacientes com dado disponível no índice (536 de 537). O número de entidades e o número de relações por prontuário são fortemente correlacionados ($r=0,959$), com mediana de 38 entidades e 81 relações por paciente, e cada paciente tem suas entidades distribuídas, em média, por comunidades que correspondem a 55\% do número de entidades -- ou seja, a fragmentação entre comunidades observada no caso do paciente A não é um evento isolado, mas uma característica estrutural recorrente do índice. Os resumos das dez comunidades de nível 1 com maior número de relações, que ilustram o conteúdo efetivamente consultado pelos modos \textit{global} e \textit{drift}, são reproduzidos no Apêndice~\ref{ap:comunidades}.
 
 A literatura recente aponta duas causas convergentes para esse quadro, uma em cada etapa da indexação. Na extração, \citet{ye2026} observaram que \textit{prompts} genéricos aplicados a prontuários multiplicam as entidades, ao tratar cada parâmetro laboratorial como entidade independente, e mitigaram o problema exigindo uma única entidade de paciente por registro, à qual se vinculam diagnósticos, medicamentos e exames, princípio que atacaria diretamente a dispersão observada aqui. No agrupamento, \citet{hossain2026} demonstram que, em grafos de conhecimento esparsos, a partição de Leiden não é reprodutível e tende a produzir comunidades de tamanho muito desigual, como as da Tabela~\ref{tab:met-niveis}. Como os resumos de comunidade são o material percorrido pelos modos \textit{global} e \textit{drift}, a granularidade do grafo, definida já na extração de entidades, condiciona diretamente as comunidades formadas pelo Leiden e, por consequência, o contexto disponível a esses modos de busca.
 
@@ -234,14 +228,15 @@ A literatura recente aponta duas causas convergentes para esse quadro, uma em ca
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas NetworkX e matplotlib.}
 \end{figure}
 
-\begin{figure}[!htbp]
-\centering
-\includegraphics[width=0.95\textwidth]{Cap05/figuras/analise_estrutural_subgrafos.png}
-\caption[Distribuição estrutural dos subgrafos por prontuário]{Distribuição do número de entidades, relações e comunidades distintas por prontuário, e relação entre entidades e relações.}
-\label{fig:res-estrutura-agregada}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
-\end{figure}
-
+\FloatBarrier
 \section{Síntese dos resultados}\label{sec:res-sintese}
 
 Em conjunto, os resultados deste capítulo sustentam três conclusões. Primeira, o modo \textit{drift} supera \textit{basic} e \textit{local} em F1 macro, mas o ganho é assimétrico: decorre de uma revocação muito mais alta, e não de maior precisão, de modo que a escolha do sistema deve considerar explicitamente essa troca, e não apenas o valor agregado de F1. Segunda, o ganho do \textit{drift} concentra-se nas doenças que exigem inferência a partir de evidência indireta e dispersa no texto (cirrose, hipertensão portal, esquistossomose), enquanto é marginal nas doenças com marcador textual direto (hepatite B, hepatite C, esteatose), por efeito-teto, e inexistente em HDA, cujo padrão de erro é qualitativamente distinto: confusão anatômica entre sangramento alto e baixo, estatisticamente confirmada. Terceira, a diferença entre os níveis de comunidade 1 e 2 é pequena diante da diferença entre modos de busca: a maior delas, no \textit{drift}, foi de 0,053 de F1 macro, inferior à diferença entre \textit{basic} e \textit{drift} em qualquer dos dois níveis.
+
+\begin{figure}[!htb]
+\centering
+\input{Cap05/figuras/analise_estrutural_subgrafos.tex}
+\caption[Distribuição estrutural dos subgrafos por prontuário]{Distribuição do número de entidades, relações e comunidades distintas por prontuário, e relação entre entidades e relações, com o coeficiente de correlação de Pearson ($r$).}
+\label{fig:res-estrutura-agregada}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir do índice construído.}
+\end{figure}

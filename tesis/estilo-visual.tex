@@ -16,6 +16,9 @@
 \usepackage{fvextra}          % listagem do prompt no Apêndice A (quebra de linha)
 \usepackage{placeins}        % \FloatBarrier: mantém figuras dentro da própria seção
 \usetikzlibrary{patterns, shapes.arrows}
+\usepgfplotslibrary{groupplots, statistics}   % figuras do Cap. 5 em pgfplots
+% Quadros numerados por capítulo (Quadro 5.1, 5.2...): \begin{quadro}[label=...]{Título}
+\newtcolorbox[auto counter, number within=chapter]{quadro}[2][]{colback=gray!5, colframe=gray!60, fonttitle=\bfseries, title={Quadro~\thetcbcounter: #2}, #1}
 
 % --- Paleta principal (OA-RAG) -----------------------------------------
 \definecolor{vAzul}{HTML}{2A78D6}

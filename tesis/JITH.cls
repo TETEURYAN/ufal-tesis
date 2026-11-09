@@ -107,7 +107,7 @@
 	
 	\vspace{1cm}
 	
-	\definecolor{icbackcolor}{RGB}{ 73, 87, 150}
+	\definecolor{icbackcolor}{RGB}{ 0, 74, 172}
 	\definecolor{icfrontcolor}{RGB}{203, 208, 227}
 \hfill\fcolorbox{icfrontcolor}{icfrontcolor}{\begin{minipage}[r][2.5cm]{0.6\textwidth}
 				\renewcommand{\baselinestretch}{1}\raggedleft\large\@university\\

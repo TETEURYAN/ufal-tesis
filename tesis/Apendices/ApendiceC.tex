@@ -1,0 +1,7 @@
+\chapter{\texorpdfstring{\textit{Prompt}}{Prompt} da Triagem por LLM}\label{ap:prompt-triagem}
+
+Este apêndice reproduz o \textit{prompt} empregado na segunda etapa do funil de construção da amostra, a triagem por LLM (Seção~\ref{sec:met-amostra}). Para cada prontuário candidato, a lista de condições é preenchida com as doenças sinalizadas pela triagem por expressões regulares, e o modelo responde, para cada uma, se há evidência clara de sua presença. As expressões entre chaves são substituídas, a cada chamada, pelo número do prontuário, pelas condições candidatas e pelo texto do prontuário, truncado em 8.000 caracteres.
+
+\begin{small}
+\VerbatimInput[breaklines, breakanywhere, fontsize=\footnotesize, frame=single, framesep=2mm, rulecolor=\color{black!40}]{Apendices/prompt_triagem_llm.txt}
+\end{small}

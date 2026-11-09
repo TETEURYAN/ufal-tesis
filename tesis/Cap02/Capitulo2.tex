@@ -4,7 +4,7 @@ O processamento de linguagem natural (PLN) aplicado a texto clínico consolidou-
 
 \section{GraphRAG em Registros Clínicos e Saúde}\label{sec:relacionados-graphrag-saude}
 
-\citet{baptista2025} aplicaram GraphRAG a prontuários no padrão FHIR, com expansão de vizinhança a um salto (\textit{1-hop}) sobre o grafo, e avaliaram cinco LLMs como geradores; a dissertação de \citet{baptista2026} deu continuidade a essa linha. Os dados são sintéticos, gerados pelo simulador Synthea, e a avaliação usa métricas de abrangência e diversidade atribuídas por um LLM no papel de juiz. A presente pesquisa difere por empregar prontuários reais em texto livre e \textit{ground truth} anotado por especialista.
+\citet{baptista2025} aplicaram GraphRAG a prontuários no padrão FHIR, com expansão de vizinhança a um salto (\textit{1-hop}) sobre o grafo, e avaliaram cinco LLMs como geradores; a dissertação de \citet{baptista2026} deu continuidade a essa linha. Os dados são sintéticos, gerados pelo simulador Synthea, e a avaliação usa métricas de abrangência e diversidade atribuídas por um LLM no papel de juiz. A presente pesquisa difere por empregar prontuários reais em texto livre e \textit{ground truth} anotado manualmente.
 
 \citet{soni2025} descrevem a tarefa compartilhada ArchEHR-QA 2025, que reuniu 29 equipes e 75 sistemas na resposta a perguntas de pacientes fundamentada em evidências de seus próprios prontuários. Segundo os autores, parte dos sistemas seleciona as evidências mais relevantes antes de gerar a resposta, princípio da geração aumentada por recuperação \citep{lewis2020}. A tarefa, contudo, é de resposta livre, e não de classificação multirrótulo de diagnósticos.
 

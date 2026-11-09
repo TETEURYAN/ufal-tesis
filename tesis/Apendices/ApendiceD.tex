@@ -1,0 +1,47 @@
+\chapter{Dicionários de Termos e Marcadores}\label{ap:dicionarios}
+
+Este apêndice reúne os dicionários empregados na triagem por expressões regulares (Seção~\ref{sec:met-amostra}) e na extração determinística das respostas (Seção~\ref{sec:met-parser}). Todos os termos e marcadores são aplicados ao texto normalizado, em letras minúsculas e sem acentos, razão pela qual aparecem nessa forma. Os nomes das doenças e seus sinônimos são procurados como palavras inteiras; os marcadores de negação, incerteza e contexto histórico são buscados em qualquer posição da linha, e alguns deles são expressões regulares.
+
+A Tabela~\ref{tab:ap-marcadores} lista os marcadores que descartam uma menção: na triagem, a negação, a incerteza e, para HDA e PBE, o contexto histórico; no \textit{parser}, a negação, com marcadores adicionais incorporados após auditorias de falsos positivos. A Tabela~\ref{tab:ap-termos} lista os termos reconhecidos para cada doença, compartilhados pela triagem e pelo \textit{parser}.
+
+\begin{table}[H]
+\centering
+\caption[Marcadores de negação, incerteza e contexto histórico]{Marcadores que descartam uma menção, na forma normalizada, por etapa em que são aplicados.}
+\label{tab:ap-marcadores}
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm}p{11.2cm}@{}}
+\toprule
+Marcador & Termos e expressões \\
+\midrule
+Negação (triagem e \textit{parser}) & \raggedright \texttt{ausente}, \texttt{ausencia}, \texttt{descartad}, \texttt{exclu}, \texttt{negativ}, \texttt{nao\ confirmad}, \texttt{nao\ evidenciad}, \texttt{sem\ evidencia}, \texttt{nao\ ha\ evidencia}, \texttt{negado}, \texttt{nao\ documentad}, \texttt{nao\ presente}, \texttt{nega\ }, \texttt{nego\ }, \texttt{negou\ } \tabularnewline
+Negação (só no \textit{parser}) & \raggedright \texttt{\textbackslash{}bnr\textbackslash{}b}, \texttt{nao\ ha\ .\{0,40\}que\ .\{0,15\}confirm}, \texttt{nao\ esta\ documentad}, \texttt{nao\ consta}, \texttt{nao\ ha\ relato} \tabularnewline
+Incerteza (triagem) & \raggedright \texttt{a\ esclarecer}, \texttt{a\ definir}, \texttt{a\ investigar}, \texttt{epidemiologia\ positiva}, \texttt{epidemiologia\ para}, \texttt{suspeita\ de}, \texttt{possivel\ }, \texttt{provavel\ }, \texttt{risco\ para}, \texttt{\textbackslash{}?} \tabularnewline
+Contexto histórico (triagem, só HDA e PBE) & \raggedright \texttt{passado\ de}, \texttt{historia\ de}, \texttt{historico\ de}, \texttt{previo\ de}, \texttt{previa\ de}, \texttt{antecedente\ de} \tabularnewline
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir do código da triagem (\texttt{filtro\_triagem.py}) e do \textit{parser} (\texttt{parser\_doencas.py}).}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption[Termos reconhecidos para cada doença]{Termos reconhecidos para cada uma das oito doenças, na forma normalizada.}
+\label{tab:ap-termos}
+\small
+\renewcommand{\arraystretch}{1.25}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.4cm}p{11.2cm}@{}}
+\toprule
+Doença & Termos \\
+\midrule
+Cirrose hepática & \raggedright \texttt{cirrose}, \texttt{cirrose\ hepatica}, \texttt{cirrose\ hepatica\ descompensada}, \texttt{cirrose\ hepatica\ alcoolica}, \texttt{cirrose\ hepatica\ viral\ c}, \texttt{cirrose\ micronodular}, \texttt{cirrose\ descompensada}, \texttt{cirrose\ hepatica\ cronica} \tabularnewline
+Esquistossomose & \raggedright \texttt{esquistossomose}, \texttt{equistossomose}, \texttt{esquistossomose\ hepatoesplenica}, \texttt{esquistossomose\ hepatoesplenica\ (ehe)}, \texttt{esquistossomose\ mansoni}, \texttt{esquistossomose\ mansonica}, \texttt{ehe} \tabularnewline
+Hepatite C & \raggedright \texttt{hepatite\ c}, \texttt{hepatite\ c\ (hcv)}, \texttt{hepatite\ c\ cronica}, \texttt{hepatite\ cronica\ viral\ c} \tabularnewline
+Hepatite B & \raggedright \texttt{hepatite\ b}, \texttt{hepatite\ b\ (hbv)}, \texttt{hepatite\ b\ cronica}, \texttt{hepatite\ b\ inativa}, \texttt{hepatite\ b\ resolvida}, \texttt{hepatite\ cronica\ b}, \texttt{hepatite\ cronica\ viral\ b}, \texttt{virus\ b\ (hepatite\ b)} \tabularnewline
+Esteatose hepática & \raggedright \texttt{esteatose}, \texttt{esteatose\ hepatica}, \texttt{esteatose\ hepatica\ difusa}, \texttt{dhgna}, \texttt{nafld}, \texttt{masld}, \texttt{mash}, \texttt{nash}, \texttt{doenca\ hepatica\ gordurosa\ nao\ alcoolica}, \texttt{doenca\ hepatica\ gordurosa\ nao\ alcoolica\ (dhgna)}, \texttt{doenca\ hepatica\ esteatotica\ metabolica}, \texttt{doenca\ hepatica\ esteatotica\ metabolica\ (mash)}, \texttt{esteato-hepatite\ nao\ alcoolica}, \texttt{esteato-hepatite\ nao\ alcoolica\ (nash)}, \texttt{esteatohepatite}, \texttt{esteatohepatite\ nao\ alcoolica} \tabularnewline
+Hipertensão portal & \raggedright \texttt{hipertensao\ portal}, \texttt{hipertensao\ porta}, \texttt{sindrome\ de\ hipertensao\ portal}, \texttt{sindrome\ da\ hipertensao\ portal}, \texttt{hipertensao\ portal\ nao\ cirrotica}, \texttt{ehe/hp} \tabularnewline
+Hemorragia digestiva alta & \raggedright \texttt{hda}, \texttt{hemorragia\ digestiva\ alta}, \texttt{hemorragia\ digestiva\ alta\ varicosa}, \texttt{hemorragia\ varicosa} \tabularnewline
+Peritonite bacteriana espontânea & \raggedright \texttt{pbe}, \texttt{peritonite\ bacteriana\ espontanea}, \texttt{peritonite\ bacteriana\ espontanea\ (pbe)} \tabularnewline
+\bottomrule
+\end{tabular}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor a partir do código do \textit{parser} (\texttt{parser\_doencas.py}).}
+\end{table}

@@ -1,0 +1,9 @@
+\chapter{\texorpdfstring{\textit{Prompt}}{Prompt} de Extração de Entidades e Relações}\label{ap:prompt-indexacao}
+
+Este apêndice reproduz o \textit{prompt} de extração de entidades e relações empregado na indexação do corpus, gerado pelo procedimento automático de ajuste de \textit{prompts} do GraphRAG (Seção~\ref{sec:met-prompt-tuning}). As instruções são apresentadas na íntegra, em inglês, tal como geradas pela ferramenta. As expressões entre chaves, como \texttt{\{tuple\_delimiter\}}, \texttt{\{record\_delimiter\}}, \texttt{\{completion\_delimiter\}} e \texttt{\{input\_text\}}, são variáveis substituídas pelo GraphRAG no momento de cada chamada ao modelo.
+
+O \textit{prompt} original continha três exemplos \textit{few-shot} que o ajuste automático extraiu de trechos do próprio corpus. Para preservar a confidencialidade dos dados, esses exemplos foram substituídos por um único exemplo fictício, redigido no mesmo estilo dos prontuários e no mesmo formato de saída.
+
+\begin{small}
+\VerbatimInput[breaklines, breakanywhere, fontsize=\footnotesize, frame=single, framesep=2mm, rulecolor=\color{black!40}]{Apendices/prompt_extracao_grafo.txt}
+\end{small}

@@ -1,0 +1,13 @@
+Abaixo está o texto de um prontuário eletrônico (paciente {ID_DO_PRONTUARIO}). Um filtro automático encontrou menções às seguintes condições nesse texto:
+- {CONDIÇÃO CANDIDATA 1}
+- {CONDIÇÃO CANDIDATA 2}
+- (...)
+
+Para CADA uma dessas condições, avalie com base EXCLUSIVAMENTE no texto: há evidência CLARA e INEQUÍVOCA de que o PRÓPRIO PACIENTE (não familiares) TEM essa condição (diagnóstico explícito, exame de imagem/laboratorial confirmatório sem ressalva, ou estadiamento formal)? Hipóteses com '?', suspeitas não confirmadas, fatores de risco/epidemiologia sem confirmação, episódios históricos/resolvidos, ou doença mencionada apenas como antecedente FAMILIAR (pai/mãe/irmão/avô com a doença, não o paciente) NÃO contam como evidência clara — responda NÃO nesses casos. Para hemorragia digestiva alta e PBE especificamente: só responda SIM se houver sangramento/peritonite ATIVO ou muito recente documentado — episódio antigo já resolvido/tratado NÃO conta.
+
+Responda em uma linha por condição, EXATAMENTE neste formato:
+NOME DA CONDIÇÃO: SIM ou NÃO - justificativa em até 15 palavras
+
+--- PRONTUÁRIO {ID_DO_PRONTUARIO} ---
+{TEXTO DO PRONTUÁRIO, truncado em 8000 caracteres}
+--- FIM DO PRONTUÁRIO {ID_DO_PRONTUARIO} ---

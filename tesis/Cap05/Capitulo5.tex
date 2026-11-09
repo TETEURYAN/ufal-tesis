@@ -8,7 +8,7 @@ A Tabela~\ref{tab:res-metricas-gerais} reúne as métricas agregadas dos seis si
 
 \begin{table}[!htbp]
 \centering
-\caption[Métricas agregadas dos seis sistemas avaliados]{Métricas agregadas dos seis sistemas avaliados sobre os 537 prontuários (531 para S8).}
+\caption[Métricas agregadas dos seis sistemas avaliados]{Métricas agregadas dos seis sistemas avaliados sobre os 537 prontuários (531 respostas válidas para S8, em que seis consultas terminaram em erro).}
 \label{tab:res-metricas-gerais}
 \begin{tabular}{lccccc>{\columncolor{colunaDestaque}}cc}
 \toprule
@@ -68,7 +68,7 @@ O padrão mais relevante da Tabela~\ref{tab:res-metricas-gerais} é a assimetria
 
 \section{Desempenho por doença}\label{sec:res-por-doenca}
 
-A Figura~\ref{fig:res-f1-doenca} compara o F1 por doença entre S1 (\textit{basic}, referência sem uso estruturado do grafo), S3 (\textit{local}) e S7 (\textit{drift}), os três sistemas de nível 1. O padrão confirma, com ressalvas, a distinção introduzida na Seção~\ref{sec:met-hipoteses} entre doenças de marcador binário claro e doenças de inferência indireta. Em cirrose hepática e hipertensão portal -- doenças que dependem de inferência a partir de múltiplos achados dispersos no texto --, o ganho do \textit{drift} sobre o \textit{basic} é grande: 18,1 e 19,7 pontos de F1, respectivamente. Em esteatose hepática e hepatite C, cujo texto costuma registrar um exame ou laudo objetivo, o ganho é menor, por efeito-teto (o \textit{basic} já desempenha bem nessas classes): 5,4 e 9,0 pontos. Dois casos escapam ao padrão simples. A esquistossomose, apesar de também depender de inferência indireta, tem ganho modesto (5,0 pontos), semelhante ao das doenças de marcador direto. Já a hepatite B é o único caso em que o \textit{drift} não supera o \textit{basic}: o F1 é ligeiramente menor (0,851 contra 0,864), uma diferença pequena, mas que contraria a expectativa de ganho uniforme do \textit{drift} sobre doenças com marcador objetivo. A hemorragia digestiva alta (HDA) permanece a exceção mais clara ao padrão geral: apesar de o termo literal estar presente na maior parte dos prontuários positivos, o \textit{drift} (F1 = 0,457) não supera o \textit{local} (F1 = 0,485) nessa classe, consistente com o mecanismo de confusão anatômica investigado e estatisticamente confirmado na Seção~\ref{sec:res-investigacao-erro}.
+A Figura~\ref{fig:res-f1-doenca} compara o F1 por doença entre S1 (\textit{basic}, referência sem uso estruturado do grafo), S3 (\textit{local}) e S7 (\textit{drift}), os três sistemas de nível 1. O padrão confirma, com ressalvas, a distinção entre doenças de marcador binário claro e doenças de inferência indireta. Em cirrose hepática e hipertensão portal -- doenças que dependem de inferência a partir de múltiplos achados dispersos no texto --, o ganho do \textit{drift} sobre o \textit{basic} é grande: 18,1 e 19,7 pontos de F1, respectivamente. Em esteatose hepática e hepatite C, cujo texto costuma registrar um exame ou laudo objetivo, o ganho é menor, por efeito-teto (o \textit{basic} já desempenha bem nessas classes): 5,4 e 9,0 pontos. Dois casos escapam ao padrão simples. A esquistossomose, apesar de também depender de inferência indireta, tem ganho modesto (5,0 pontos), semelhante ao das doenças de marcador direto. Já a hepatite B é o único caso em que o \textit{drift} não supera o \textit{basic}: o F1 é ligeiramente menor (0,851 contra 0,864), uma diferença pequena, mas que contraria a expectativa de ganho uniforme do \textit{drift} sobre doenças com marcador objetivo. A hemorragia digestiva alta (HDA) permanece a exceção mais clara ao padrão geral: apesar de o termo literal estar presente na maior parte dos prontuários positivos, o \textit{drift} (F1 = 0,457) não supera o \textit{local} (F1 = 0,485) nessa classe, consistente com o mecanismo de confusão anatômica investigado e estatisticamente confirmado na Seção~\ref{sec:res-investigacao-erro}.
 
 \begin{figure}[!htbp]
 \centering
@@ -128,11 +128,11 @@ As matrizes de confusão por doença (Figuras~\ref{fig:res-confusao-s7} e~\ref{f
 
 \section{Investigação do comportamento do modo \textit{drift}}\label{sec:res-investigacao}
 
-Esta seção relata o resultado das duas investigações cujo desenho foi descrito na Seção~\ref{sec:met-hipoteses}: por que o \textit{drift} acerta em casos que \textit{basic}/\textit{local} erram (Seção~\ref{sec:res-investigacao-acerto}) e por que o \textit{drift} erra em casos que \textit{basic}/\textit{local} acertam (Seção~\ref{sec:res-investigacao-erro}).
+Esta seção relata o resultado de duas investigações dirigidas ao modo \textit{drift}, conduzidas \textit{a posteriori} sobre pares formados por prontuário e doença, com hipóteses comparadas pelo teste U de Mann-Whitney \citep{mann_whitney1947}, para variáveis quantitativas, e pelo teste qui-quadrado de Pearson \citep{pearson1900}, para proporções: por que o \textit{drift} acerta em casos que \textit{basic}/\textit{local} erram (Seção~\ref{sec:res-investigacao-acerto}) e por que o \textit{drift} erra em casos que \textit{basic}/\textit{local} acertam (Seção~\ref{sec:res-investigacao-erro}).
 
 \subsection{Por que o \textit{drift} acerta onde os demais erram}\label{sec:res-investigacao-acerto}
 
-O grupo A reúne 206 pares paciente/doença em que o \textit{drift} identifica corretamente uma doença presente e a maioria de \textit{basic}/\textit{local} não identifica; o grupo B, de 593 pares, funciona como controle. A Tabela~\ref{tab:res-h1-h4-acerto} resume os quatro testes.
+O grupo A reúne 206 pares paciente/doença em que ao menos um dos sistemas \textit{drift} (S7 ou S8) identifica corretamente uma doença presente e mais da metade dos sistemas \textit{basic}/\textit{local} (S1 a S4) não a identifica; o grupo B, de 593 pares, funciona como controle. A Tabela~\ref{tab:res-h1-h4-acerto} resume os quatro testes.
 
 \begin{table}[!htbp]
 \centering
@@ -155,7 +155,7 @@ Os prontuários do grupo A são significativamente mais longos (H1) e mencionam 
 
 \subsection{Por que o \textit{drift} erra onde os demais acertam}\label{sec:res-investigacao-erro}
 
-O grupo A desta investigação reúne 291 pares paciente/doença em que a doença está ausente segundo o rótulo de referência, o \textit{drift} prediz presença (falso positivo) e a maioria de \textit{basic}/\textit{local} acerta a ausência; o grupo B, de 3.144 pares, é o controle (doença ausente e \textit{drift} também acerta). A Tabela~\ref{tab:res-h1-h4-erro} resume os testes.
+O grupo A desta investigação reúne 291 pares paciente/doença em que a doença está ausente segundo o rótulo de referência, ao menos um dos sistemas \textit{drift} (S7 ou S8) prediz presença (falso positivo) e mais da metade dos sistemas \textit{basic}/\textit{local} (S1 a S4) acerta a ausência; o grupo B, de 3.144 pares, é o controle (doença ausente e \textit{drift} também acerta). A Tabela~\ref{tab:res-h1-h4-erro} resume os testes.
 
 \begin{table}[!htbp]
 \centering
@@ -186,7 +186,7 @@ A Figura~\ref{fig:res-acerto-erro-tamanho} ilustra esse padrão sobre todos os p
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com as bibliotecas pandas e matplotlib.}
 \end{figure}
 
-A hipótese H3, específica de HDA, é a única das duas investigações a isolar estatisticamente o mecanismo da terceira categoria de doença discutida na Seção~\ref{sec:met-hipoteses}: termos de sangramento baixo (hemorroida, fissura anal, hematoquezia) aparecem em quase o triplo da proporção dos falsos positivos de HDA em comparação ao controle (8,7\% contra 2,8\%, $p=0,040$). Isso confirma estatisticamente, pela primeira vez, a hipótese qualitativa de confusão anatômica entre sangramento alto e baixo levantada durante a análise de erros (Seção~\ref{sec:met-hipoteses}) e que fundamentou o bloco do \textit{prompt} de extração dedicado a essa distinção (Seção~\ref{sec:met-prompt}).
+A hipótese H3, específica de HDA, é a única das duas investigações a isolar estatisticamente o mecanismo da terceira categoria de doença discutida na Seção~\ref{sec:res-por-doenca}: termos de sangramento baixo (hemorroida, fissura anal, hematoquezia) aparecem em quase o triplo da proporção dos falsos positivos de HDA em comparação ao controle (8,7\% contra 2,8\%, $p=0,040$). Isso confirma estatisticamente, pela primeira vez, a hipótese qualitativa de confusão anatômica entre sangramento alto e baixo levantada durante a análise de erros (Seção~\ref{sec:met-qualitativa}) e que fundamentou o bloco do \textit{prompt} de extração dedicado a essa distinção (Seção~\ref{sec:met-prompt}).
 
 As hipóteses H1 e H4 têm suporte qualitativo, mas proporção abaixo do limiar adotado para considerá-las confirmadas (13,4\% e 13,8\%, respectivamente). Ainda assim, os casos individuais que as motivaram permanecem informativos: no paciente 890194, por exemplo, o texto afirma explicitamente ``hipertensão portal não cirrótica'', e o \textit{drift} lista cirrose mesmo com a negação textual explícita; no paciente 1028182, o sistema confunde o diagnóstico de um familiar (tio com cirrose, mencionado no histórico familiar) com o do próprio paciente, e também confunde ``varizes em membros inferiores'' (varizes de perna) com varizes esofágicas, pela recorrência da palavra ``varizes'' fora do território anatômico correto.
 

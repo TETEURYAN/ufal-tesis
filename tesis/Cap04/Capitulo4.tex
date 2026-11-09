@@ -7,7 +7,7 @@ O capítulo organiza-se em quatro etapas, que correspondem aos painéis da Figur
 \begin{figure}[!htbp]
 \centering
 \resizebox{\textwidth}{!}{\input{Cap04/figuras/arquitetura_sistema.tex}}
-\caption[Arquitetura do sistema avaliado]{Arquitetura do sistema avaliado, em quatro etapas que estruturam este capítulo: (1) base de dados e construção da amostra (Seção~\ref{sec:met-dados}); (2) construção do grafo de conhecimento pelo GraphRAG (Seção~\ref{sec:met-grafo}); (3) consulta pelos sistemas S1 a S8, com S5 e S6 esmaecidos por não terem sido concluídos (Seção~\ref{sec:met-sistemas}); e (4) extração e avaliação (Seção~\ref{sec:met-avaliacao}).}
+\caption[Arquitetura do sistema avaliado]{Arquitetura do sistema avaliado, em quatro etapas: construção da amostra, construção do grafo, consulta pelos sistemas S1 a S8 (S5 e S6 esmaecidos, não concluídos) e avaliação.}
 \label{fig:met-visao-geral}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
@@ -102,7 +102,7 @@ A hierarquia produzida pelo algoritmo de Leiden possui 7 níveis, e a Tabela~\re
 
 \begin{table}[!htbp]
 \centering
-\caption[Número e tamanho das comunidades por nível da hierarquia]{Número e tamanho das comunidades, em entidades, em cada nível da hierarquia do índice. Os níveis 1 e 2 foram os adotados nos sistemas avaliados.}
+\caption[Número e tamanho das comunidades por nível da hierarquia]{Número e tamanho, em entidades, das comunidades em cada nível da hierarquia do índice.}
 \label{tab:met-niveis}
 \begin{tabular}{crrr}
 \toprule

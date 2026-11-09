@@ -15,7 +15,7 @@ Os modelos de linguagem de grande escala (LLMs, do inglês \textit{large languag
 \begin{figure}[!htbp]
 \centering
 \includegraphics[width=0.40\textwidth]{Cap03/figuras/transformer_arquitetura.png}
-\caption[Arquitetura do modelo \textit{Transformer}]{Arquitetura do modelo \textit{Transformer}: codificador, à esquerda, e decodificador, à direita, cada um com $N$ camadas de atenção com múltiplas cabeças e redes \textit{feed-forward}.}
+\caption[Arquitetura do modelo \textit{Transformer}]{Arquitetura do \textit{Transformer}, com o codificador à esquerda e o decodificador à direita.}
 \label{fig:transformer}
 \par\smallskip{\footnotesize Fonte: \citet{vaswani2017}.}
 \end{figure}
@@ -87,7 +87,7 @@ O pipeline canônico do RAG compreende três etapas, esquematizadas na Figura~\r
 \draw[seta] (bus.east) -- ++(0.55,0) |- (pr.west);
 \draw[seta] (pr) -- (llm); \draw[seta] (llm) -- (res);
 \end{tikzpicture}
-\caption[Pipeline da geração aumentada por recuperação]{Pipeline da geração aumentada por recuperação (RAG): a indexação, realizada uma única vez, segmenta os documentos e armazena seus \textit{embeddings} em um banco vetorial; a recuperação seleciona os $k$ segmentos mais similares à consulta; a geração submete ao LLM um \textit{prompt} que combina a consulta e os segmentos recuperados.}
+\caption[Pipeline da geração aumentada por recuperação]{Pipeline da geração aumentada por recuperação (RAG): indexação dos documentos em um banco vetorial, recuperação dos $k$ segmentos mais similares à consulta e geração da resposta pelo LLM.}
 \label{fig:rag}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor com base em \citet{lewis2020}.}
 \end{figure}
@@ -155,7 +155,7 @@ Um KG pode ser construído manualmente, por especialistas, com alta precisão e 
 \draw[black!45, dashed, line width=0.4pt] (props.north) -- (m);
 \fill[black!55] (m) circle (1.1pt);
 \end{tikzpicture}
-\caption[Grafo de conhecimento clínico no estilo do Neo4j]{Exemplo fictício de grafo de conhecimento clínico representado como grafo de propriedades, no estilo do Neo4j: nós rotulados por tipo, relacionamentos tipados e dirigidos e, em destaque, as propriedades de um relacionamento, incluindo data, grau de certeza e proveniência.}
+\caption[Grafo de conhecimento clínico no estilo do Neo4j]{Exemplo fictício de grafo de conhecimento clínico, com nós tipados, relações dirigidas e as propriedades de uma relação em destaque.}
 \label{fig:kg-exemplo}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor, com modelo de dados adaptado de \citet{neo4j_patient_journey}.}
 \end{figure}
@@ -208,8 +208,9 @@ A indexação encadeia as etapas ilustradas na Figura~\ref{fig:graphrag-pipeline
       \coordinate (legmid) at ($(itime)!0.5!(qtime)$);
       \node[font=\bfseries] at ([yshift=-1cm]legmid) {Etapa do pipeline};
     \end{tikzpicture}
-    \caption[Pipeline do GraphRAG]{Pipeline do GraphRAG a partir de um índice de grafo derivado por LLM do texto dos documentos-fonte. O índice abrange nós (entidades) e arestas (relações), além de covariáveis opcionais, detectados, extraídos e resumidos por \textit{prompts} adaptados ao domínio dos dados. A detecção de comunidades (por exemplo, Leiden, \citealt{traag2019}) particiona o índice em grupos de elementos que o LLM resume em paralelo, tanto no tempo de indexação quanto no de consulta. A ``resposta global'' a uma consulta resulta de uma rodada final de sumarização orientada à consulta sobre todos os resumos de comunidade que reportam relevância para ela. Figura extraída de \citet{edge2024} e traduzida pelo autor para fins didáticos.}
+    \caption[Pipeline do GraphRAG]{Pipeline do GraphRAG: extração de entidades e relações por LLM, detecção de comunidades e sumarização, nos tempos de indexação e de consulta.}
     \label{fig:graphrag-pipeline}
+    \par\smallskip{\footnotesize Fonte: traduzido de \citet{edge2024}.}
 \end{figure}
 
 A detecção de comunidades emprega o algoritmo de Leiden \citep{traag2019}, aprimoramento do método de Louvain. Ambos buscam a partição que maximiza a modularidade, medida que compara a densidade de arestas dentro das comunidades com a esperada em um grafo aleatório de mesmo grau, mas o Leiden acrescenta uma etapa de refinamento que garante comunidades internamente conectadas. Aplicado de forma recursiva, o algoritmo agrega cada comunidade em um supernó e repete o procedimento sobre o grafo agregado, gerando os níveis de comunidade (\textit{community levels}) exemplificados na Figura~\ref{fig:leiden-hierarquia}. No nível mais agregado, L0, poucas comunidades amplas correspondem aos grandes temas do corpus; nos níveis seguintes, elas se subdividem em comunidades menores e tematicamente específicas, cujos resumos são mais curtos e concretos. Ao comparar os níveis C0 a C3, \citet{edge2024} observaram diferenças de qualidade pequenas entre eles, em sua maioria não significativas, e uma grande diferença de custo: os resumos do nível raiz exigiram de 9 a 43 vezes menos \textit{tokens} por consulta que as demais condições avaliadas.
@@ -221,8 +222,9 @@ A detecção de comunidades emprega o algoritmo de Leiden \citep{traag2019}, apr
         \includegraphics[width=0.47\textwidth]{Cap02/figuras/Level1Multihop.jpg} \\
         (a) Comunidades raiz no nível 0 & (b) Subcomunidades no nível 1
     \end{tabular}
-    \caption[Comunidades detectadas pelo algoritmo de Leiden, em dois níveis]{Comunidades do grafo detectadas pelo algoritmo de Leiden \citep{traag2019} sobre um conjunto de dados de exemplo, tal como indexado. Os círculos representam nós de entidade, com tamanho proporcional ao grau, e o leiaute foi obtido com os algoritmos OpenORD e Force Atlas~2. As cores identificam comunidades de entidades em dois níveis do agrupamento hierárquico: (a) nível 0, correspondente à partição de modularidade máxima, e (b) nível 1, que revela a estrutura interna dessas comunidades de nível raiz. Níveis mais agregados produzem menos comunidades e resumos mais longos e abstratos; níveis mais granulares produzem muitas comunidades e resumos mais curtos e específicos. Figura extraída de \citet{edge2024}; legenda traduzida e condensada pelo autor para fins didáticos.}
+    \caption[Comunidades detectadas pelo algoritmo de Leiden, em dois níveis]{Comunidades detectadas pelo algoritmo de Leiden em um conjunto de dados de exemplo, nos níveis 0 (a) e 1 (b) da hierarquia. As cores identificam as comunidades; o tamanho do nó é proporcional ao grau.}
     \label{fig:leiden-hierarquia}
+    \par\smallskip{\footnotesize Fonte: \citet{edge2024}.}
 \end{figure}
 
 Na etapa de consulta, o GraphRAG oferece quatro modos de busca, esquematizados na Figura~\ref{fig:modos-busca}. O modo \textit{basic} recupera as unidades de texto mais similares à consulta, sem utilizar o grafo, como um RAG convencional. O modo \textit{local} identifica as entidades mais relevantes e monta o contexto com sua vizinhança, as relações que as conectam e as unidades de texto associadas, sendo adequado a perguntas centradas em entidades específicas. O modo \textit{global} opera em \textit{map-reduce} sobre os resumos de comunidade de um nível: cada resumo gera uma resposta parcial pontuada por utilidade, e as mais úteis são combinadas na resposta final. O modo \textit{drift} parte de uma consulta ampla aos resumos de comunidade e, a cada iteração, gera subperguntas que refina com buscas locais, o que tende a produzir as respostas mais completas ao custo de muito mais chamadas ao LLM.
@@ -277,8 +279,9 @@ Na etapa de consulta, o GraphRAG oferece quatro modos de busca, esquematizados n
 \draw[arr, bend left=30] (de) to (ds);
 \node[note] at (4.4,-6) {iterações global $\leftrightarrow$ local};
 \end{tikzpicture}
-\caption[Modos de busca do GraphRAG]{Representação esquemática dos quatro modos de busca do Microsoft GraphRAG e da parcela do índice que cada um percorre.}
+\caption[Modos de busca do GraphRAG]{Os quatro modos de busca do GraphRAG e a parcela do índice que cada um percorre.}
 \label{fig:modos-busca}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
 
 O custo computacional é a principal limitação prática do GraphRAG. A indexação exige uma chamada ao LLM por unidade de texto e outra por comunidade, e a consulta multiplica as chamadas nos modos \textit{global} e \textit{drift}. O ganho de qualidade precisa, portanto, compensar custo e latência, e depende ainda de como o modelo aproveita contextos longos, questão examinada a seguir.
@@ -312,8 +315,9 @@ As janelas de contexto dos LLMs cresceram de poucos milhares de \textit{tokens},
 \addplot[smooth, very thick, color=vAzul] {0.9 - 0.55*exp(-((x-10.5)^2)/40)};
 \end{axis}
 \end{tikzpicture}
-\caption[Representação esquemática do fenômeno \textit{lost in the middle}]{Representação esquemática do fenômeno \textit{lost in the middle}. O desempenho é maior quando a informação relevante ocupa o início ou o fim do contexto e cai quando ela se encontra no meio, configurando a curva em U observada por \citet{liu2024}. A figura ilustra apenas o formato da relação, sem reproduzir valores específicos.}
+\caption[Representação esquemática do fenômeno \textit{lost in the middle}]{Representação esquemática do fenômeno \textit{lost in the middle}: o desempenho cai quando a informação relevante está no meio do contexto.}
 \label{fig:lost-middle}
+\par\smallskip{\footnotesize Fonte: elaborado pelo autor com base em \citet{liu2024}.}
 \end{figure}
 
 \subsection{Degradação da Atenção e Estratégias de Mitigação}\label{sec:degradacao-atencao}
@@ -343,7 +347,7 @@ O texto clínico apresenta características que o tornam particularmente hostil 
 \mAbr{Pac.} masc., 58a, \mAbr{HAS} e \mAbr{DM2} em uso de metformina 850mg 2x/dia. Refere dispneia aos \mGra{medios esforcos} \mGra{ha} 2 sem. \mNeg{Nega tabagismo e etilismo}. \mAbr{EF}: \mAbr{BEG}, corado, eupneico em repouso. \mAbr{HD}: \mInc{\mAbr{ICC}?} \mAbr{DPOC} \mInc{a esclarecer}. \mNeg{Afastada pneumonia} (\mAbr{RX} \mGra{torax} \mNeg{s/ alterações}). \mAbr{CD}: solicito \mAbr{ECO} e \mAbr{BNP}; retorno em 30d.};
 \node[below=5pt of nota, font=\scriptsize] {\chip{vAzul!22}abreviação\hspace{10pt}\chip{vVermelho!22}negação\hspace{10pt}\chip{vAmbar!35}incerteza\hspace{10pt}\chip{vRoxo!20}grafia irregular};
 \end{tikzpicture}
-\caption[Exemplo fictício de evolução clínica]{Exemplo fictício de evolução clínica, redigido para ilustrar características típicas do texto clínico: estilo telegráfico, abreviações não padronizadas, negação, incerteza diagnóstica e grafia irregular, como a ausência de acentuação.}
+\caption[Exemplo fictício de evolução clínica]{Exemplo fictício de evolução clínica, com abreviações, negação, incerteza diagnóstica e grafia irregular.}
 \label{fig:nota-clinica}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
@@ -390,7 +394,7 @@ Revocação & $=\dfrac{\mathrm{VP}}{\mathrm{VP}+\mathrm{FN}}$\\
 F1        & $=\dfrac{2\cdot\text{Precisão}\cdot\text{Revocação}}{\text{Precisão}+\text{Revocação}}$
 \end{tabular}};
 \end{tikzpicture}
-\caption[Matriz de confusão e métricas derivadas]{Matriz de confusão de um problema binário, com os acertos em verde e os erros em laranja, e as métricas de classificação derivadas de suas quatro contagens.}
+\caption[Matriz de confusão e métricas derivadas]{Matriz de confusão binária e as métricas derivadas de suas quatro contagens.}
 \label{fig:matriz-confusao}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}

@@ -1,0 +1,25 @@
+TY  - JOUR
+TI  - A comparative study of large language model-based zero-shot inference and task-specific supervised classification of breast cancer pathology reports
+AU  - Sushil, Madhumita
+AU  - Zack, Travis
+AU  - Mandair, Divneet
+AU  - Zheng, Zhiwei
+AU  - Wali, Ahmed
+AU  - Yu, Yan-Ning
+AU  - Quan, Yuwei
+AU  - Lituiev, Dmytro
+AU  - Butte, Atul J
+T2  - Journal of the American Medical Informatics Association
+PY  - 2024
+DA  - 2024/10/01
+VL  - 31
+IS  - 10
+SP  - 2315
+EP  - 2327
+DO  - 10.1093/jamia/ocae146
+UR  - https://doi.org/10.1093/jamia/ocae146
+AB  - Although supervised machine learning is popular for information extraction from clinical notes, creating large annotated datasets requires extensive domain expertise and is time-consuming. Meanwhile, large language models (LLMs) have demonstrated promising transfer learning capability. In this study, we explored whether recent LLMs could reduce the need for large-scale data annotations. We curated a dataset of 769 breast cancer pathology reports, manually labeled with 12 categories, to compare zero-shot classification capability of the following LLMs: GPT-4, GPT-3.5, Starling, and ClinicalCamel, with task-specific supervised classification performance of 3 models: random forests, long short-term memory networks with attention (LSTM-Att), and the UCSF-BERT model. Across all 12 tasks, the GPT-4 model performed either significantly better than or as well as the best supervised model, LSTM-Att (average macro F1-score of 0.86 vs 0.75), with advantage on tasks with high label imbalance. Other LLMs demonstrated poor performance. Frequent GPT-4 error categories included incorrect inferences from multiple samples and from history, and complex task design, and several LSTM-Att errors were related to poor generalization to the test set. On tasks where large annotated datasets cannot be easily collected, LLMs can reduce the burden of data labeling. However, if the use of LLMs is prohibitive, the use of simpler models with large annotated datasets can provide comparable results. GPT-4 demonstrated the potential to speed up the execution of clinical NLP studies by reducing the need for large annotated datasets. This may increase the utilization of NLP-based variables and outcomes in clinical studies.
+N1  - Citado na Seção 4.1.2: classificação zero-shot de texto clínico por LLM comparável à de modelos supervisionados.
+ID  - sushil2024
+LA  - en
+ER  - 

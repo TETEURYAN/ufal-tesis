@@ -273,3 +273,137 @@ N1  - Preprint: arXiv:2502.09891 (doi:10.48550/arXiv.2502.09891).
 ID  - wang2026archrag
 LA  - en
 ER  - 
+
+TY  - JOUR
+TI  - De-identification of Brazilian Portuguese Clinical Records Using a Hybrid Pipeline with Local Language Models
+AU  - Aragão, Caio Galvão
+AU  - Oliveira, Marcelo Costa
+AU  - Vieira, Thales Miranda de Almeida
+T2  - Research Square
+PY  - 2026
+DA  - 2026/08/03
+PB  - Research Square
+DO  - 10.21203/rs.3.rs-10425027/v1
+UR  - https://doi.org/10.21203/rs.3.rs-10425027/v1
+AB  - Secondary use of electronic health record narratives supports clinical research but requires removing personally identifiable information (PII). Processing identifiable records with external large language model (LLM) services raises critical privacy, governance, and data sovereignty concerns, necessitating locally deployable solutions. We propose and evaluate an offline, hybrid LLM pipeline for de-identifying Brazilian Portuguese clinical narratives on modest hardware. The architecture integrates regular expressions for canonical identifiers, recurrent n-gram detection to withhold boilerplate text from neural inference, and prompted open-weight LLMs for contextual PII extraction. To ensure system stability, a four-detector cascade manages repetitive-generation loops and resumes inference from valid prefixes. Evaluating 28 models and model committees on the synthetic AnonyMed-BR dataset, the best individual model (gemma4:26b) achieved an F2 score of 0.9595 on target PII categories, outperforming all evaluated committee approaches. Evaluated end-to-end under a broader comparison set, the full pipeline achieved F2 = 0.9341 , recall of 0.9537 , and precision of 0.8634 . The detector cascade successfully interrupted 99% of observed generation loops, while a statistical scan on an unannotated corpus of 12,674 real hospital notes classified 11.58% of bytes as boilerplate, establishing a practical upper bound for input withholding. These findings demonstrate the technical feasibility and high recall of institutionally controlled, local de-identification without requiring task-specific model fine-tuning.
+N1  - Preprint (Research Square, versão 1), licença CC BY 4.0. Método de anonimização dos prontuários citado na Seção 4.1: pipeline híbrido executado localmente (expressões regulares + LLMs de pesos abertos).
+ID  - aragao2026
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - Extracting information from the text of electronic medical records to improve case detection: a systematic review
+AU  - Ford, Elizabeth
+AU  - Carroll, John A.
+AU  - Smith, Helen E.
+AU  - Scott, Donia
+AU  - Cassell, Jackie A.
+T2  - Journal of the American Medical Informatics Association
+PY  - 2016
+DA  - 2016/09/01
+VL  - 23
+IS  - 5
+SP  - 1007
+EP  - 1015
+DO  - 10.1093/jamia/ocv180
+UR  - https://doi.org/10.1093/jamia/ocv180
+AB  - Background Electronic medical records (EMRs) are revolutionizing health-related research. One key issue for study quality is the accurate identification of patients with the condition of interest. Information in EMRs can be entered as structured codes or unstructured free text. The majority of research studies have used only coded parts of EMRs for case-detection, which may bias findings, miss cases, and reduce study quality. This review examines whether incorporating information from text into case-detection algorithms can improve research quality. Methods A systematic search returned 9659 papers, 67 of which reported on the extraction of information from free text of EMRs with the stated purpose of detecting cases of a named clinical condition. Methods for extracting information from text and the technical accuracy of case-detection algorithms were reviewed. Results Studies mainly used US hospital-based EMRs, and extracted information from text for 41 conditions using keyword searches, rule-based algorithms, and machine learning methods. There was no clear difference in case-detection algorithm accuracy between rule-based and machine learning methods of extraction. Inclusion of information from text resulted in a significant improvement in algorithm sensitivity and area under the receiver operating characteristic in comparison to codes alone (median sensitivity 78% (codes + text) vs 62% (codes), P = .03; median area under the receiver operating characteristic 95% (codes + text) vs 88% (codes), P = .025). Conclusions Text in EMRs is accessible, especially with open source information extraction algorithms, and significantly improves case detection when combined with codes. More harmonization of reporting within EMR studies is needed, particularly standardized reporting of algorithm accuracy metrics like positive predictive value (precision) and sensitivity (recall).
+N1  - Citado na Seção 4.1.2: revisão sistemática; métodos baseados em regras e de aprendizado de máquina sem diferença clara de acurácia na detecção de casos a partir do texto livre.
+ID  - ford2016
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - Supervised learning for the detection of negation and of its scope in French and Brazilian Portuguese biomedical corpora
+AU  - Dalloux, Clément
+AU  - Claveau, Vincent
+AU  - Grabar, Natalia
+AU  - Oliveira, Lucas Emanuel Silva
+AU  - Moro, Claudia Maria Cabral
+AU  - Gumiel, Yohan Bonescki
+AU  - Carvalho, Deborah Ribeiro
+T2  - Natural Language Engineering
+PY  - 2021
+DA  - 2021/03
+VL  - 27
+IS  - 2
+SP  - 181
+EP  - 201
+DO  - 10.1017/S1351324920000352
+UR  - https://doi.org/10.1017/S1351324920000352
+AB  - Automatic detection of negated content is often a prerequisite in information extraction systems in various domains. In the biomedical domain especially, this task is important because negation plays an important role. In this work, two main contributions are proposed. First, we work with languages which have been poorly addressed up to now: Brazilian Portuguese and French. Thus, we developed new corpora for these two languages which have been manually annotated for marking up the negation cues and their scope. Second, we propose automatic methods based on supervised machine learning approaches for the automatic detection of negation marks and of their scopes. The methods show to be robust in both languages (Brazilian Portuguese and French) and in cross-domain (general and biomedical languages) contexts. The approach is also validated on English data from the state of the art: it yields very good results and outperforms other existing approaches. Besides, the application is accessible and usable online. We assume that, through these issues (new annotated corpora, application accessible online, and cross-domain robustness), the reproducibility of the results and the robustness of the NLP applications will be augmented.
+N1  - Publicado online em 30/06/2020. Citado na Seção 4.1.2: negação em textos biomédicos do português brasileiro (corpora anotados com marcas de negação e escopo).
+ID  - dalloux2021
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - Matching patients to clinical trials with large language models
+AU  - Jin, Qiao
+AU  - Wang, Zifeng
+AU  - Floudas, Charalampos S.
+AU  - Chen, Fangyuan
+AU  - Gong, Changlin
+AU  - Bracken-Clarke, Dara
+AU  - Xue, Elisabetta
+AU  - Yang, Yifan
+AU  - Sun, Jimeng
+AU  - Lu, Zhiyong
+T2  - Nature Communications
+PY  - 2024
+DA  - 2024/11/18
+VL  - 15
+IS  - 1
+SP  - 9074
+DO  - 10.1038/s41467-024-53081-z
+UR  - https://doi.org/10.1038/s41467-024-53081-z
+AB  - Patient recruitment is challenging for clinical trials. We introduce TrialGPT, an end-to-end framework for zero-shot patient-to-trial matching with large language models. TrialGPT comprises three modules: it first performs large-scale filtering to retrieve candidate trials (TrialGPT-Retrieval); then predicts criterion-level patient eligibility (TrialGPT-Matching); and finally generates trial-level scores (TrialGPT-Ranking). We evaluate TrialGPT on three cohorts of 183 synthetic patients with over 75,000 trial annotations. TrialGPT-Retrieval can recall over 90% of relevant trials using less than 6% of the initial collection. Manual evaluations on 1015 patient-criterion pairs show that TrialGPT-Matching achieves an accuracy of 87.3% with faithful explanations, close to the expert performance. The TrialGPT-Ranking scores are highly correlated with human judgments and outperform the best-competing models by 43.8% in ranking and excluding trials. Furthermore, our user study reveals that TrialGPT can reduce the screening time by 42.6% in patient recruitment. Overall, these results have demonstrated promising opportunities for patient-to-trial matching with TrialGPT.
+N1  - Citado na Seção 4.1.2: LLM como pré-triagem antes da revisão humana; redução de 42,6% no tempo de triagem de pacientes.
+ID  - jin2024
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - A comparative study of large language model-based zero-shot inference and task-specific supervised classification of breast cancer pathology reports
+AU  - Sushil, Madhumita
+AU  - Zack, Travis
+AU  - Mandair, Divneet
+AU  - Zheng, Zhiwei
+AU  - Wali, Ahmed
+AU  - Yu, Yan-Ning
+AU  - Quan, Yuwei
+AU  - Lituiev, Dmytro
+AU  - Butte, Atul J
+T2  - Journal of the American Medical Informatics Association
+PY  - 2024
+DA  - 2024/10/01
+VL  - 31
+IS  - 10
+SP  - 2315
+EP  - 2327
+DO  - 10.1093/jamia/ocae146
+UR  - https://doi.org/10.1093/jamia/ocae146
+AB  - Although supervised machine learning is popular for information extraction from clinical notes, creating large annotated datasets requires extensive domain expertise and is time-consuming. Meanwhile, large language models (LLMs) have demonstrated promising transfer learning capability. In this study, we explored whether recent LLMs could reduce the need for large-scale data annotations. We curated a dataset of 769 breast cancer pathology reports, manually labeled with 12 categories, to compare zero-shot classification capability of the following LLMs: GPT-4, GPT-3.5, Starling, and ClinicalCamel, with task-specific supervised classification performance of 3 models: random forests, long short-term memory networks with attention (LSTM-Att), and the UCSF-BERT model. Across all 12 tasks, the GPT-4 model performed either significantly better than or as well as the best supervised model, LSTM-Att (average macro F1-score of 0.86 vs 0.75), with advantage on tasks with high label imbalance. Other LLMs demonstrated poor performance. Frequent GPT-4 error categories included incorrect inferences from multiple samples and from history, and complex task design, and several LSTM-Att errors were related to poor generalization to the test set. On tasks where large annotated datasets cannot be easily collected, LLMs can reduce the burden of data labeling. However, if the use of LLMs is prohibitive, the use of simpler models with large annotated datasets can provide comparable results. GPT-4 demonstrated the potential to speed up the execution of clinical NLP studies by reducing the need for large annotated datasets. This may increase the utilization of NLP-based variables and outcomes in clinical studies.
+N1  - Citado na Seção 4.1.2: classificação zero-shot de texto clínico por LLM comparável à de modelos supervisionados.
+ID  - sushil2024
+LA  - en
+ER  - 
+
+TY  - JOUR
+TI  - ChatGPT outperforms crowd workers for text-annotation tasks
+AU  - Gilardi, Fabrizio
+AU  - Alizadeh, Meysam
+AU  - Kubli, Maël
+T2  - Proceedings of the National Academy of Sciences
+PY  - 2023
+DA  - 2023/07/25
+VL  - 120
+IS  - 30
+SP  - e2305016120
+DO  - 10.1073/pnas.2305016120
+UR  - https://doi.org/10.1073/pnas.2305016120
+AB  - Many NLP applications require manual text annotations for a variety of tasks, notably to train classifiers or evaluate the performance of unsupervised models. Depending on the size and degree of complexity, the tasks may be conducted by crowd workers on platforms such as MTurk as well as trained annotators, such as research assistants. Using four samples of tweets and news articles ( n = 6,183), we show that ChatGPT outperforms crowd workers for several annotation tasks, including relevance, stance, topics, and frame detection. Across the four datasets, the zero-shot accuracy of ChatGPT exceeds that of crowd workers by about 25 percentage points on average, while ChatGPT’s intercoder agreement exceeds that of both crowd workers and trained annotators for all tasks. Moreover, the per-annotation cost of ChatGPT is less than $0.003—about thirty times cheaper than MTurk. These results demonstrate the potential of large language models to drastically increase the efficiency of text classification.
+N1  - Citado na Seção 4.1.2: anotação por LLM mais barata e, na maioria das tarefas, mais precisa que a de crowdsourcing.
+ID  - gilardi2023
+LA  - en
+ER  - 

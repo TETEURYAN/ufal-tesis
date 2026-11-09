@@ -96,7 +96,7 @@
 \node[num] at (0.42,-0.42) {3};
 \node[titulo] at (0.82,-0.42) {Consulta: sistemas S1 a S8};
 \node[caixa, draw=vVerde!75!black, text width=1.95cm, font=\sffamily\scriptsize] (pr) at (1.22,-1.55) {\faFileMedical\ \ Prontuário\\{\tiny até 8.000 caracteres}};
-\node[caixa, draw=vVerde!75!black, text width=1.95cm, font=\sffamily\scriptsize] (pp) at (1.22,-2.60) {\faAlignLeft\ \ \textit{Prompt}\\{\tiny de extração (v3)}};
+\node[caixa, draw=vVerde!75!black, text width=1.95cm, font=\sffamily\scriptsize] (pp) at (1.22,-2.60) {\faAlignLeft\ \ \textit{Prompt}\\{\tiny de extração}};
 % grade modo x nível
 \begin{scope}[shift={(2.62,-0.90)}]
   \node[rotulo] at (2.175,0.02) {nível de comunidade};
@@ -131,7 +131,6 @@
 \node[caixa, draw=vRoxo!75!black, text width=6.75cm, align=left, font=\sffamily\scriptsize] (aval) at ({\PW/2},-3.45)
   {\textbf{Doenças previstas} $\times$ \textbf{rótulos de referência}\\[1pt]
    \faChartBar\ \ métricas multirrótulo (EM, P, R, F1)\\
-   \faBalanceScale\ \ teste de McNemar exato entre os níveis 1 e 2\\
    \faFlask\ \ hipóteses H1 a H4 sobre o modo \textit{drift}\\
    \faSearch\ \ análise qualitativa de erros e do grafo};
 \draw[seta] (parser.south) -- (parser.south |- aval.north);

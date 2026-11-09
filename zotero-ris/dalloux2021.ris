@@ -1,0 +1,23 @@
+TY  - JOUR
+TI  - Supervised learning for the detection of negation and of its scope in French and Brazilian Portuguese biomedical corpora
+AU  - Dalloux, Clément
+AU  - Claveau, Vincent
+AU  - Grabar, Natalia
+AU  - Oliveira, Lucas Emanuel Silva
+AU  - Moro, Claudia Maria Cabral
+AU  - Gumiel, Yohan Bonescki
+AU  - Carvalho, Deborah Ribeiro
+T2  - Natural Language Engineering
+PY  - 2021
+DA  - 2021/03
+VL  - 27
+IS  - 2
+SP  - 181
+EP  - 201
+DO  - 10.1017/S1351324920000352
+UR  - https://doi.org/10.1017/S1351324920000352
+AB  - Automatic detection of negated content is often a prerequisite in information extraction systems in various domains. In the biomedical domain especially, this task is important because negation plays an important role. In this work, two main contributions are proposed. First, we work with languages which have been poorly addressed up to now: Brazilian Portuguese and French. Thus, we developed new corpora for these two languages which have been manually annotated for marking up the negation cues and their scope. Second, we propose automatic methods based on supervised machine learning approaches for the automatic detection of negation marks and of their scopes. The methods show to be robust in both languages (Brazilian Portuguese and French) and in cross-domain (general and biomedical languages) contexts. The approach is also validated on English data from the state of the art: it yields very good results and outperforms other existing approaches. Besides, the application is accessible and usable online. We assume that, through these issues (new annotated corpora, application accessible online, and cross-domain robustness), the reproducibility of the results and the robustness of the NLP applications will be augmented.
+N1  - Publicado online em 30/06/2020. Citado na Seção 4.1.2: negação em textos biomédicos do português brasileiro (corpora anotados com marcas de negação e escopo).
+ID  - dalloux2021
+LA  - en
+ER  - 

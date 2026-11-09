@@ -2,7 +2,7 @@
 
 Este capítulo descreve o percurso metodológico adotado para atingir o objetivo geral enunciado no Capítulo~\ref{cap:introducao}, o de desenvolver e avaliar uma abordagem baseada em GraphRAG para a extração de informações clínicas de prontuários eletrônicos de pacientes hepatopatas. Para tornar essa avaliação mensurável, a extração foi formulada como uma tarefa de classificação multirrótulo: dado o texto de um prontuário, o sistema deve indicar quais, dentre oito doenças hepáticas definidas previamente, estão claramente documentadas como presentes no paciente. A pergunta que orienta o trabalho não se limita a verificar se o sistema acerta, mas busca identificar qual configuração de busca do Microsoft GraphRAG apresenta melhor desempenho nesse tipo de extração clínica e por quais razões.
 
-O capítulo organiza-se em quatro etapas, que correspondem aos painéis da Figura~\ref{fig:met-visao-geral}. A Seção~\ref{sec:met-dados} apresenta a base de dados, as classes-alvo e a construção da amostra e dos rótulos de referência. A Seção~\ref{sec:met-grafo} descreve a construção do grafo de conhecimento pelo GraphRAG, incluindo o ajuste dos \textit{prompts} de indexação e a hierarquia de comunidades. A Seção~\ref{sec:met-sistemas} define os sistemas de consulta avaliados, o \textit{prompt} de extração e o modelo de linguagem empregado. Por fim, a Seção~\ref{sec:met-avaliacao} detalha a extração das respostas, as métricas, a comparação estatística entre níveis de comunidade, a investigação dirigida ao modo \textit{drift} e a análise qualitativa. Os valores de desempenho obtidos são apresentados no capítulo de resultados; neste capítulo constam apenas os números que fundamentam decisões de projeto.
+O capítulo organiza-se em quatro etapas, que correspondem aos painéis da Figura~\ref{fig:met-visao-geral}. A Seção~\ref{sec:met-dados} apresenta a base de dados, as classes-alvo e a construção da amostra e dos rótulos de referência. A Seção~\ref{sec:met-grafo} descreve a construção do grafo de conhecimento pelo GraphRAG, incluindo o ajuste dos \textit{prompts} de indexação e a hierarquia de comunidades. A Seção~\ref{sec:met-sistemas} define os sistemas de consulta avaliados, o \textit{prompt} de extração e o modelo de linguagem empregado. Por fim, a Seção~\ref{sec:met-avaliacao} detalha a extração das respostas, as métricas, a investigação dirigida ao modo \textit{drift} e a análise qualitativa. Os valores de desempenho obtidos são apresentados no capítulo de resultados; neste capítulo constam apenas os números que fundamentam decisões de projeto.
 
 \begin{figure}[!htbp]
 \centering
@@ -19,7 +19,7 @@ O corpus reúne 3.757 prontuários únicos, que totalizam 6.405 registros de ate
 
 Quanto aos aspectos éticos, os prontuários foram anonimizados antes de qualquer uso neste trabalho.
 % TODO: descrever o procedimento de anonimização (ferramenta, categorias de dados removidas, verificação do resultado).
-A anonimização foi executada localmente, sem que nenhum dado identificável deixasse o ambiente da pesquisa, segundo o procedimento descrito por \textbf{[CITAR: artigo do método de anonimização]}. Somente o texto já anonimizado foi utilizado nas etapas seguintes, inclusive nas consultas da rodada final, enviadas a um provedor externo de inferência por meio de uma interface de programação de aplicações (API), conforme a Seção~\ref{sec:met-modelo}. A execução local da anonimização constitui, portanto, a principal salvaguarda adotada em relação ao tratamento de dados pessoais sensíveis disciplinado pela Lei Geral de Proteção de Dados Pessoais (LGPD).
+A anonimização foi executada localmente, sem que nenhum dado identificável deixasse o ambiente da pesquisa, segundo o procedimento descrito por \citet{aragao2026}: um \textit{pipeline} híbrido, executado inteiramente \textit{offline}, que combina expressões regulares para identificadores canônicos e LLMs de pesos abertos, executados localmente, para a extração contextual de informações pessoais identificáveis. Somente o texto já anonimizado foi utilizado nas etapas seguintes, inclusive nas consultas da rodada final, enviadas a um provedor externo de inferência por meio de uma interface de programação de aplicações (API), conforme a Seção~\ref{sec:met-modelo}. A execução local da anonimização constitui, portanto, a principal salvaguarda adotada em relação ao tratamento de dados pessoais sensíveis disciplinado pela Lei Geral de Proteção de Dados Pessoais (LGPD).
 % TODO: citar o texto da LGPD (não há entrada no .bib).
 % TODO: informar parecer do CEP/CAAE.
 
@@ -35,20 +35,22 @@ A lista fixa de classes é o ponto de partida de todo o pipeline. Tanto a triage
 
 Os experimentos foram conduzidos sobre um conjunto de 537 prontuários extraído do corpus de 3.757. Esse conjunto não constitui amostra aleatória: foi construído por um funil de três etapas, representado no painel 1 da Figura~\ref{fig:met-visao-geral}. A escolha decorre do fato de que uma amostra aleatória simples teria prevalência baixa demais de cada uma das oito doenças, com número de casos positivos por classe insuficiente para uma avaliação multirrótulo. O funil contorna esse problema ao enriquecer a amostra com prontuários que plausivelmente mencionam as condições de interesse.
 
-A primeira etapa consistiu em uma triagem por expressões regulares sobre o texto bruto de todo o corpus, em busca de menções às oito doenças-alvo. Um teste manual preliminar mostrou que uma busca ingênua pelos termos produzia falsos positivos sistemáticos, o que motivou quatro correções:
+A primeira etapa consistiu em uma triagem por expressões regulares sobre o texto bruto de todo o corpus, em busca de menções às oito doenças-alvo. Abordagens baseadas em regras como essa são usuais na identificação de casos a partir do texto livre de prontuários: em revisão sistemática sobre o tema, \citet{ford2016} não encontraram diferença clara de acurácia entre métodos baseados em regras e métodos de aprendizado de máquina. Um teste manual preliminar mostrou que uma busca ingênua pelos termos produzia falsos positivos sistemáticos, o que motivou quatro correções:
 \begin{enumerate}
     \item desconsiderar a colisão entre a sigla HDA da doença-alvo e o cabeçalho de seção ``H.D.A.'' (história da doença atual), que respondia sozinha por cerca de 73\% dos falsos positivos de HDA antes da correção;
-    \item descartar menções explicitamente negadas, marcadas por termos como ``nega'', ``ausente'' e ``descartado'';
+    \item descartar menções explicitamente negadas, marcadas por termos como ``nega'', ``ausente'' e ``descartado'', uma vez que a negação desempenha papel importante no texto biomédico em português brasileiro, para o qual há corpora anotados com marcas de negação e seu escopo \citep{dalloux2021};
     \item descartar menções marcadas por incerteza (\textit{hedges}), como ``?'', ``a esclarecer'', ``suspeita de'' e ``epidemiologia positiva'', que indicam risco, e não achado positivo;
     \item descartar menções em contexto histórico ou já resolvido, como ``passado de'' e ``história de'', exceto quando a condição é o motivo do atendimento atual.
 \end{enumerate}
 A saída dessa etapa foi uma lista de prontuários candidatos, isto é, que mencionam ao menos uma das oito doenças de forma textualmente plausível.
 
-A segunda etapa submeteu os candidatos a uma triagem por LLM. Para cada prontuário, realizou-se uma chamada direta ao modelo, sem indexação nem recuperação, com uma pergunta curta que solicitava confirmação binária (sim ou não) para cada doença candidata. O objetivo foi reduzir o volume de falsos positivos antes da revisão humana, a etapa mais onerosa do funil. As chamadas foram executadas em paralelo e de forma retomável, o que permitiu reiniciar o processamento a partir do ponto de interrupção.
+A segunda etapa submeteu os candidatos a uma triagem por LLM. Para cada prontuário, realizou-se uma chamada direta ao modelo, sem indexação nem recuperação, com uma pergunta curta que solicitava confirmação binária (sim ou não) para cada doença candidata. Essa estratégia apoia-se na capacidade, já demonstrada, de LLMs classificarem texto clínico sem treinamento específico com desempenho comparável ao de modelos supervisionados \citep{sushil2024}. O objetivo foi reduzir o volume de falsos positivos antes da revisão humana, a etapa mais onerosa do funil. O uso de LLMs como pré-triagem antes da revisão humana reduziu em 42,6\% o tempo de triagem de pacientes para ensaios clínicos \citep{jin2024}, e anotações produzidas por LLMs já se mostraram mais baratas e, na maioria das tarefas, mais precisas que as de anotadores de \textit{crowdsourcing} \citep{gilardi2023}. As chamadas foram executadas em paralelo e de forma retomável, o que permitiu reiniciar o processamento a partir do ponto de interrupção.
 % TODO: informar o modelo de linguagem usado na triagem por LLM.
 
 A terceira etapa foi a anotação manual, denominada no projeto ``segunda opinião'': uma revisão humana dos candidatos que passaram pelas etapas anteriores, que produziu o rótulo definitivo de cada prontuário. Esse conjunto constitui o \textit{ground truth} do trabalho, isto é, o conjunto de rótulos considerados corretos contra os quais as saídas do sistema são comparadas, e é referido daqui em diante como rótulos de referência.
 % TODO: informar quantos anotadores participaram, sua formação e se houve medida de concordância entre anotadores (por exemplo, kappa de Cohen). A Seção 2.7 afirma que o trabalho adota ground truth "anotado por especialista"; confirmar.
+
+\subsection{Composição da Amostra}\label{sec:met-composicao}
 
 Os números disponíveis confirmam que o funil molda a composição da amostra final. Em uma rodada específica de expansão da amostra, foram registrados 396 prontuários candidatos. Dos 68 prontuários que terminaram rotulados sem nenhuma das oito doenças, 43 (63\%) pertencem a esse grupo de candidatos, ou seja, foram sinalizados pela triagem textual, mas a revisão por LLM ou manual concluiu que a menção não correspondia a diagnóstico presente, seja por negação, por incerteza ou por contexto histórico não capturados pelas expressões regulares. O grupo sem doença, portanto, não é um grupo de controle aleatório: resulta, em parte substancial, da própria filtragem de falsos positivos.
 
@@ -164,59 +166,25 @@ Uma consequência do desenho merece registro. Como o modo \textit{basic} não ut
 
 \subsection{\texorpdfstring{\textit{Prompt}}{Prompt} de Extração}\label{sec:met-prompt}
 
-O \textit{prompt} enviado em cada consulta passou por três versões ao longo do trabalho, cada uma voltada a corrigir um problema concreto identificado na análise de erros das versões anteriores. As três compartilham uma estrutura comum. Todas solicitam explicitamente que o modelo indique quais das oito doenças estão claramente documentadas como presentes, entendendo-se por isso diagnóstico explícito, exame confirmatório ou estadiamento formal. Todas truncam o texto do prontuário em 8.000 caracteres e exigem que a resposta seja delimitada pelas marcas \texttt{<RESPOSTA>} e \texttt{</RESPOSTA>}, com uma doença por linha no formato ``nome da doença: trecho que confirma''.
+O \textit{prompt} enviado em cada consulta solicita que o modelo indique quais das oito doenças estão claramente documentadas como presentes no prontuário, entendendo-se por isso diagnóstico explícito, exame confirmatório ou estadiamento formal. O texto do prontuário é truncado em 8.000 caracteres, e a resposta deve vir delimitada pelas marcas \texttt{<RESPOSTA>} e \texttt{</RESPOSTA>}, com uma doença por linha no formato ``nome da doença: trecho que confirma''. O nome deve ser exatamente um dos oito nomes canônicos, sem variações nem sinônimos, o que viabiliza a extração determinística descrita na Seção~\ref{sec:met-parser}.
 
-Integram também a estrutura comum duas regras de interpretação. A regra de negação estabelece que resultados registrados como ``NR'' ou ``negativo'' indicam ausência, e não presença, da condição. A regra temporal, específica para HDA e PBE, determina que essas condições só sejam consideradas quando ativas ou recentes, e não quando se tratar de episódio antigo já resolvido.
+O \textit{prompt} estabelece, ainda, regras de interpretação. A regra de negação determina que resultados registrados como ``NR'' ou ``negativo'' indicam ausência da condição, e a regra temporal restringe HDA e PBE a episódios ativos ou recentes. Um bloco específico orienta o modelo quanto a três confusões recorrentes: a distinção anatômica entre hemorragia digestiva alta e sangramento baixo ou retal, como o decorrente de hemorroida ou fissura anal; a distinção entre hipertensão portal e hipertensão arterial; e a proibição de citar escores de estadiamento, como Child-Pugh, MELD e FIB-4, que não estejam literalmente escritos no texto, ou de usar como evidência achados sem relação hepática direta. Por fim, proíbe-se listar uma doença apenas por menção de risco, probabilidade ou epidemiologia, sem diagnóstico confirmado.
 
-A Tabela~\ref{tab:met-prompts} resume a evolução das versões. A versão 2 acrescentou a exigência de que o nome da doença na resposta seja exatamente um dos oito nomes canônicos da lista, sem variação nem sinônimo, mudança motivada pela dificuldade do \textit{parser} (Seção~\ref{sec:met-parser}) em reconhecer as variações livres de nomenclatura produzidas com a primeira versão.
-
-\begin{table}[!htbp]
-\centering
-\caption[Evolução do \textit{prompt} de extração]{Evolução do \textit{prompt} de extração e problema que motivou cada versão.}
-\label{tab:met-prompts}
-\begin{tabular}{cp{7.0cm}p{5.6cm}}
-\toprule
-Versão & Alteração introduzida & Problema que a motivou \\
-\midrule
-1 & \raggedright Estrutura comum: critério de presença clara, truncamento em 8.000 caracteres, resposta delimitada, regra de negação e regra temporal para HDA e PBE & \raggedright Versão inicial \tabularnewline
-2 & \raggedright Nome da doença restrito aos oito nomes canônicos, sem sinônimos & \raggedright Variações livres de nomenclatura não reconhecidas pelo \textit{parser} \tabularnewline
-3 & \raggedright Bloco com três confusões recorrentes (HDA e sangramento baixo; hipertensão portal e arterial; escores não escritos e achados sem relação hepática) e reforço contra a listagem por risco ou epidemiologia & \raggedright Erros recorrentes identificados na análise qualitativa \tabularnewline
-\bottomrule
-\end{tabular}
-\par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
-\end{table}
-
-A versão 3 acrescentou um bloco explícito com três confusões recorrentes identificadas na análise qualitativa dos erros. A primeira é a distinção anatômica entre hemorragia digestiva alta e sangramento baixo ou retal, como o decorrente de hemorroida ou fissura anal. A segunda é a distinção entre hipertensão portal e hipertensão arterial, termos que compartilham apenas a palavra ``hipertensão''. A terceira é a proibição de citar ou inferir escores de estadiamento, como Child-Pugh, MELD e FIB-4, que não estejam literalmente escritos no texto, bem como de usar como evidência achados de órgãos ou sistemas sem relação hepática direta, salvo quando o texto estabelece essa relação explicitamente. A versão 3 reforçou, ainda, a proibição de listar uma doença apenas por menção de risco, probabilidade ou epidemiologia, sem diagnóstico confirmado.
-
-A versão 3 é a versão final do \textit{prompt} e foi empregada nos sistemas S1 a S4 na rodada definitiva. Uma vez fixado o \textit{prompt}, as consultas passam a depender do modelo de linguagem que as responde e da infraestrutura que as executa, descritos a seguir.
-% TODO: informar qual versão do prompt foi usada em S7 e S8 (drift) na rodada final; a fonte registra apenas que a versão 3 foi "testada isoladamente no drift".
+Esse \textit{prompt} resultou de versões preliminares, refinadas a partir da análise de erros de rodadas exploratórias, e foi o único empregado nos sistemas avaliados. Uma vez fixado, as consultas passam a depender do modelo de linguagem que as responde e da infraestrutura que as executa, descritos a seguir.
 
 \subsection{Modelo de Linguagem e Infraestrutura de Execução}\label{sec:met-modelo}
 
-A rodada que produziu os resultados reportados no Capítulo~\ref{cap:resultados} -- os oito sistemas sobre os 537 prontuários -- utilizou o modelo \texttt{inclusionai/ling-2.6-flash}, acessado pelo serviço de roteamento OpenRouter. Trata-se de um modelo instrucional, sem etapa de raciocínio expandido, o que mantém a latência baixa e previsível: a duração média observada no modo \textit{drift} (o mais custoso, por encadear múltiplas chamadas) foi de 214 segundos por consulta, com mediana de 190 segundos.
-% TODO: informar temperatura e demais parâmetros de decodificação, se fixados, e o provedor/custo por token do ling-2.6-flash na rodada final.
+A rodada experimental que produziu os resultados reportados no Capítulo~\ref{cap:resultados} -- contemplando os oito sistemas avaliados sobre os 537 prontuários -- utilizou o modelo de linguagem \texttt{gpt-oss-120b}, executado localmente. Trata-se de um modelo de pesos abertos com capacidade de raciocínio, cuja execução local permitiu manter o processamento dos experimentos sob controle da infraestrutura computacional disponível, sem depender de serviços externos de roteamento de requisições ou de provedores de inferência em nuvem.
 
-Houve, posteriormente, uma tentativa de migrar todos os sistemas para \texttt{inclusionai/ling-3.0-flash}, um modelo de raciocínio híbrido (\textit{hybrid reasoning}) da mesma família, com o objetivo de uniformizar o modelo entre todas as comparações. Essa tentativa, no entanto, não foi concluída: cobriu apenas os modos \textit{basic} e \textit{local} (S1 a S4), e os modos \textit{global} e \textit{drift} não chegaram a produzir um conjunto de resultados confiável nessa migração, pelos motivos discutidos a seguir. Os resultados do Capítulo~\ref{cap:resultados}, portanto, referem-se integralmente à rodada em \texttt{ling-2.6-flash}, e não à tentativa de migração para \texttt{ling-3.0-flash}.
-% TODO: revisar esta seção à luz da tentativa de migração: decidir se os
-% resultados parciais em ling-3.0-flash (S1-S4) devem ser citados no
-% capítulo de resultados como comparação complementar, e registrar
-% explicitamente que a tentativa de validação do prompt de HDA (Seção
-% \ref{sec:res-validacao-hda}) foi conduzida sobre ling-3.0-flash, não sobre
-% o modelo da rodada final -- a comparação ali deve ser lida como um
-% experimento novo num modelo diferente e mais lento, não como réplica
-% exata da condição de S7/S8.
+A utilização desse modelo constituiu a configuração efetivamente empregada na geração dos resultados apresentados neste trabalho. Assim, todas as comparações entre os sistemas e modos de busca discutidas no Capítulo~\ref{cap:resultados} referem-se à mesma configuração de modelo, evitando que diferenças decorrentes da utilização de modelos distintos interfiram na interpretação dos resultados.
 
-O modelo \texttt{ling-3.0-flash} é um modelo de raciocínio híbrido, que gera \textit{tokens} de raciocínio não exibidos antes de produzir a resposta final, acessado pelo mesmo serviço de roteamento, com inferência realizada pelo provedor Novita ao custo de US\$~0,021 por milhão de \textit{tokens} de entrada e US\$~0,063 por milhão de \textit{tokens} de saída. Esse comportamento aumenta de forma substancial o custo e a latência e torna esta última muito variável: uma mesma consulta pode levar de segundos a horas, de forma pouco previsível -- mesmo no modo \textit{basic} (S1), o mais simples, a duração média observada na tentativa de migração subiu para 566 segundos, cerca de 25 vezes a média equivalente em \texttt{ling-2.6-flash} no mesmo modo. O esforço de raciocínio foi configurado no nível baixo. A execução com esse modelo e com esse provedor exigiu, contudo, três ajustes no código do GraphRAG, descritos nos parágrafos seguintes.
+O modelo \texttt{gpt-oss-120b} possui capacidade de raciocínio, o que pode introduzir uma etapa adicional de processamento antes da geração da resposta final. Esse comportamento pode influenciar a latência das consultas, especialmente nos modos de busca que encadeiam múltiplas chamadas ao modelo, como o \textit{drift}. Ainda assim, os resultados experimentais foram obtidos mantendo-se a mesma configuração de modelo entre os oito sistemas avaliados.
 
-O primeiro ajuste refere-se ao formato de resposta estruturada. O GraphRAG original força respostas no formato de objeto JSON (\textit{JavaScript Object Notation}) nas etapas de \textit{map} do modo \textit{global} e de \textit{primer} do modo \textit{drift}, configuração recusada por provedores que aceitam apenas respostas validadas por esquema JSON. Uma primeira correção removeu essa exigência de todas as chamadas ao LLM, mas afetou também a etapa de avaliação de relevância de comunidades, usada pela seleção dinâmica, e provocou centenas de respostas malformadas por consulta. A correção final restringiu a remoção, por meio da inspeção da pilha de chamadas, aos módulos que de fato apresentavam o problema, preservando o comportamento original no restante do sistema.
-
-O segundo ajuste diz respeito ao esforço de raciocínio. O parâmetro correspondente na configuração do GraphRAG não produz efeito quando a chamada passa pela biblioteca intermediária litellm até o OpenRouter, pois é descartado sem aviso. Por isso, foi necessário injetar o parâmetro diretamente no corpo de cada requisição de geração, no formato reconhecido pelo OpenRouter, para que o esforço baixo fosse efetivamente aplicado.
-
-O terceiro ajuste foi a paralelização das consultas, uma vez que a execução original, sequencial, era inviável em escala com um modelo de raciocínio lento. A concorrência foi ajustada empiricamente por modo de busca, a partir da medição do uso de memória por processo, já que o limite efetivo era a memória da máquina local, e não o limite de requisições da API. Adotaram-se seis processos simultâneos no modo \textit{basic}, três no modo \textit{local}, que consome cerca de 1,3~GB por processo, quase o dobro do \textit{basic}, e dois nos modos \textit{global} e \textit{drift}.
+A execução local exigiu ajustes na estratégia de paralelização das consultas, uma vez que o processamento simultâneo de múltiplas requisições impõe demandas significativas de memória e processamento.
 
 \section{Avaliação}\label{sec:met-avaliacao}
 
-A resposta de cada consulta foi convertida em um conjunto de doenças previstas e comparada aos rótulos de referência, etapa representada no painel 4 da Figura~\ref{fig:met-visao-geral}. Esta seção descreve a extração da resposta, as métricas de classificação, a comparação estatística entre níveis de comunidade, as hipóteses formuladas sobre o modo \textit{drift} e a análise qualitativa de erros e do grafo.
+A resposta de cada consulta foi convertida em um conjunto de doenças previstas e comparada aos rótulos de referência, etapa representada no painel 4 da Figura~\ref{fig:met-visao-geral}. Esta seção descreve a extração da resposta, as métricas de classificação, as hipóteses formuladas sobre o modo \textit{drift} e a análise qualitativa de erros e do grafo.
 
 \subsection{Extração da Resposta}\label{sec:met-parser}
 
@@ -240,7 +208,7 @@ R_{\text{micro}} = \frac{\sum_{c \in C} \mathrm{VP}_c}{\sum_{c \in C} \left(\mat
 \label{eq:pr-micro}
 \end{equation}
 
-Além das métricas por classe, adotou-se a acurácia de correspondência exata (\textit{exact match}, também denominada \textit{subset accuracy}), definida na Equação~\eqref{eq:em} como a proporção de pacientes cujo conjunto previsto $\hat{Y}_i$ é idêntico ao conjunto de referência $Y_i$, em que $N$ é o número de pacientes e $\mathbf{1}[\cdot]$ é a função indicadora. Trata-se da métrica mais rigorosa do trabalho, pois um único erro em qualquer das oito classes invalida o acerto do paciente inteiro, e é também a variável comparada no teste de McNemar (Seção~\ref{sec:met-mcnemar}).
+Além das métricas por classe, adotou-se a acurácia de correspondência exata (\textit{exact match}, também denominada \textit{subset accuracy}), definida na Equação~\eqref{eq:em} como a proporção de pacientes cujo conjunto previsto $\hat{Y}_i$ é idêntico ao conjunto de referência $Y_i$, em que $N$ é o número de pacientes e $\mathbf{1}[\cdot]$ é a função indicadora. Trata-se da métrica mais rigorosa do trabalho, pois um único erro em qualquer das oito classes invalida o acerto do paciente inteiro.
 \begin{equation}
 \mathrm{EM} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{1}\left[\hat{Y}_i = Y_i\right]
 \label{eq:em}
@@ -251,35 +219,6 @@ A acurácia por rótulo, definida na Equação~\eqref{eq:ar}, considera cada com
 \mathrm{AR} = \frac{1}{N\,|C|}\sum_{i=1}^{N}\sum_{c \in C} \mathbf{1}\left[\hat{y}_{ic} = y_{ic}\right]
 \label{eq:ar}
 \end{equation}
-
-\subsection{Comparação entre Níveis: Teste de McNemar Exato}\label{sec:met-mcnemar}
-
-Para verificar se a escolha entre os níveis 1 e 2 produz diferença estatisticamente significativa, aplicou-se, para cada modo de busca, o teste de McNemar exato \citep{mcnemar1947} sobre o acerto exato por paciente (\textit{exact match}, definido na Seção~\ref{sec:met-metricas}).
-O teste é pareado porque os mesmos pacientes são avaliados nos dois níveis de um mesmo modo. Para cada paciente, registra-se se o conjunto de doenças previsto coincide integralmente com o de referência em cada nível, e apenas os pares discordantes entram na estatística: $b$ denota o número de pacientes acertados somente no nível 1, e $c$, o número de pacientes acertados somente no nível 2.
-
-Sob a hipótese nula de que os dois níveis têm a mesma probabilidade de acerto, cada par discordante tem igual chance de favorecer qualquer um deles, de modo que $b$ segue distribuição binomial com $n = b + c$ tentativas e probabilidade $1/2$. A versão exata do teste calcula o p-valor bilateral diretamente dessa distribuição, conforme a Equação~\eqref{eq:mcnemar}, sem recorrer à aproximação pela distribuição qui-quadrado, o que a torna adequada mesmo quando o número de discordâncias é pequeno. Adotou-se nível de significância de 5\%.
-% TODO: no modo drift o teste foi aplicado a 531 pacientes, e não a 537; explicar a diferença (por exemplo, pacientes sem resposta válida em um dos níveis), se confirmado.
-\begin{equation}
-p = \min\left(1,\; 2\sum_{k=0}^{\min(b,c)} \binom{n}{k}\left(\frac{1}{2}\right)^{n}\right)
-\label{eq:mcnemar}
-\end{equation}
-
-\subsection{Hipóteses sobre o Modo \texorpdfstring{\textit{Drift}}{Drift}}\label{sec:met-hipoteses}
-
-A comparação entre os sistemas revelou um padrão sistemático no comportamento do modo \textit{drift}, relatado no capítulo de resultados, que motivou uma investigação dedicada ao mecanismo subjacente. Trata-se, portanto, de uma análise conduzida \textit{a posteriori}, cujo desenho se descreve aqui. Foram comparados dois grupos de pares formados por prontuário e doença presente nos rótulos de referência. O grupo A reúne os casos em que o modo \textit{drift} identifica corretamente a doença e a maioria dos sistemas \textit{basic} e \textit{local} não a identifica; o grupo B reúne todos os demais casos positivos e funciona como controle.
-% TODO: especificar se o acerto do drift considera S7, S8 ou ambos e qual o critério de "maioria" entre S1 a S4.
-
-Quatro hipóteses foram formuladas, cada uma associada a um teste estatístico formal, implementado com o módulo de estatística da biblioteca SciPy:
-\begin{description}
-    \item[H1:] os prontuários do grupo A são mais longos, em número de caracteres, que os do grupo B; teste U de Mann-Whitney;
-    \item[H2:] o termo literal da doença aparece em menor proporção no texto dos prontuários do grupo A; teste qui-quadrado de comparação de proporções;
-    \item[H3:] os prontuários do grupo A registram mais atendimentos; teste U de Mann-Whitney;
-    \item[H4:] a entidade canônica da doença deixou de ser extraída na indexação, para o paciente correspondente, em maior proporção no grupo A; teste qui-quadrado.
-\end{description}
-% TODO: citar Mann e Whitney (1947) e o teste qui-quadrado de Pearson; não há entradas no .bib.
-
-A escolha dos testes segue a natureza de cada variável. Comprimento do texto e número de atendimentos são variáveis quantitativas sem pressuposto de normalidade, razão pela qual se empregou o teste U de Mann-Whitney \citep{mann_whitney1947}, não paramétrico, que dispensa esse pressuposto. A presença do termo literal e a ausência da entidade canônica são variáveis binárias, comparadas entre os grupos pelo teste qui-quadrado de Pearson \citep{pearson1900}. Adotou-se, também aqui, nível de significância de 5\%. A hipótese H4 originou-se da análise detalhada do subgrafo de um paciente específico, descrita na seção seguinte, e foi submetida ao teste justamente para verificar se o mecanismo observado nesse caso se generaliza para a amostra.
-
 \subsection{Análise Qualitativa de Erros e do Grafo}\label{sec:met-qualitativa}
 
 Como apoio à investigação qualitativa dos erros, foram gerados subgrafos de entidades e relações por paciente, desenhados com as bibliotecas NetworkX e matplotlib em leiaute de força dirigida de Fruchterman-Reingold e coloridos por comunidade.
@@ -294,15 +233,15 @@ O procedimento foi depois generalizado para todos os 537 prontuários, com uma i
 % 2. Número de anotadores da "segunda opinião", formação e medida de concordância.
 % 3. Parecer do CEP/CAAE e procedimento de anonimização.
 % 4. S5 e S6 (global): confirmar uso de seleção dinâmica e como o nível 1 ou 2 se aplica.
-% 5. N=531 no McNemar do drift contra N=537 nos demais: explicar.
+% 5. N=531 no S8 (drift, nível 2) contra N=537 nos demais: explicar.
 % 6. [RESOLVIDO 2026-11-01] Instituição de origem dos dados: Hospital Universitário
 %    da Universidade Federal de Alagoas (HU-UFAL), confirmado pelo autor.
 % 7. Índice: corpus completo ou amostra; LLM e modelo de embeddings da indexação; tamanho e sobreposição dos chunks.
 % 8. Modelo de LLM usado na triagem (etapa 2 do funil); parâmetros de decodificação na rodada final.
 % 9. Modo basic: conferir com a descrição da Seção~\ref{sec:rag} (recuperação vetorial) e se o nível de comunidade é inócuo nele.
 % 10. Critério do grupo A (S7, S8 ou ambos; limiar de "maioria" entre S1 a S4).
-% 11. [PARCIALMENTE RESOLVIDO 2026-10-19] McNemar, Mann-Whitney e qui-quadrado de
-%     Pearson já têm entrada no .bib (mcnemar1947, mann_whitney1947, pearson1900) e
+% 11. [PARCIALMENTE RESOLVIDO 2026-10-19] Mann-Whitney e qui-quadrado de
+%     Pearson já têm entrada no .bib (mann_whitney1947, pearson1900) e
 %     são citados no texto. Ainda faltam: Fruchterman e Reingold (1991), LGPD.
 % 12. (2026-10-16) Revisar esta correção de modelo (ling-2.6-flash na rodada final,
 %     ling-3.0-flash só na tentativa de migração) contra qualquer outra citação
@@ -310,9 +249,6 @@ O procedimento foi depois generalizado para todos os 537 prontuários, com uma i
 %     ainda assumir ling-3.0-flash como modelo da rodada final.
 %
 % TODO: ITENS DA FONTE A MIGRAR PARA O CAPÍTULO DE RESULTADOS E DISCUSSÃO
-% - Resultado do McNemar por modo (basic N=537, 45 contra 40, p=0,6646; local N=537,
-%   44 contra 47, p=0,8341; drift N=531, 44 contra 61, p=0,1180) e sua interpretação
-%   como justificativa a posteriori para manter os dois níveis.
 % - S8 superior a S7 no F1 macro (0,798 contra 0,745).
 % - Padrão agregado do drift: revocação de cerca de 95% contra 60 a 67% em basic/local;
 %   precisão de cerca de 65 a 76% contra 78 a 86%.

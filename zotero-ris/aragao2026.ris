@@ -1,0 +1,16 @@
+TY  - JOUR
+TI  - De-identification of Brazilian Portuguese Clinical Records Using a Hybrid Pipeline with Local Language Models
+AU  - Aragão, Caio Galvão
+AU  - Oliveira, Marcelo Costa
+AU  - Vieira, Thales Miranda de Almeida
+T2  - Research Square
+PY  - 2026
+DA  - 2026/08/03
+PB  - Research Square
+DO  - 10.21203/rs.3.rs-10425027/v1
+UR  - https://doi.org/10.21203/rs.3.rs-10425027/v1
+AB  - Secondary use of electronic health record narratives supports clinical research but requires removing personally identifiable information (PII). Processing identifiable records with external large language model (LLM) services raises critical privacy, governance, and data sovereignty concerns, necessitating locally deployable solutions. We propose and evaluate an offline, hybrid LLM pipeline for de-identifying Brazilian Portuguese clinical narratives on modest hardware. The architecture integrates regular expressions for canonical identifiers, recurrent n-gram detection to withhold boilerplate text from neural inference, and prompted open-weight LLMs for contextual PII extraction. To ensure system stability, a four-detector cascade manages repetitive-generation loops and resumes inference from valid prefixes. Evaluating 28 models and model committees on the synthetic AnonyMed-BR dataset, the best individual model (gemma4:26b) achieved an F2 score of 0.9595 on target PII categories, outperforming all evaluated committee approaches. Evaluated end-to-end under a broader comparison set, the full pipeline achieved F2 = 0.9341 , recall of 0.9537 , and precision of 0.8634 . The detector cascade successfully interrupted 99% of observed generation loops, while a statistical scan on an unannotated corpus of 12,674 real hospital notes classified 11.58% of bytes as boilerplate, establishing a practical upper bound for input withholding. These findings demonstrate the technical feasibility and high recall of institutionally controlled, local de-identification without requiring task-specific model fine-tuning.
+N1  - Preprint (Research Square, versão 1), licença CC BY 4.0. Método de anonimização dos prontuários citado na Seção 4.1: pipeline híbrido executado localmente (expressões regulares + LLMs de pesos abertos).
+ID  - aragao2026
+LA  - en
+ER  - 

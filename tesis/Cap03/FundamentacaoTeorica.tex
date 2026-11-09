@@ -165,7 +165,7 @@ No domínio clínico, os nós representam doenças, sintomas, medicamentos, exam
 Organizar o corpus recuperado como grafo, e não apenas como coleção de segmentos, é o princípio que o GraphRAG incorpora ao pipeline de recuperação, assunto da próxima seção.
 
 \FloatBarrier
-\section{Geração Aumentada por Recuperação com Grafos de Conhecimento (GraphRAG)}\label{sec:graphrag}
+\section[Geração Aumentada por Recuperação com Grafos de Conhecimento]{Geração Aumentada por Recuperação com Grafos de Conhecimento (GraphRAG)}\label{sec:graphrag}
 
 O termo GraphRAG designa, em sentido amplo, as abordagens de geração aumentada por recuperação que empregam um grafo como estrutura intermediária entre o corpus e o modelo generativo, seja para indexar o conteúdo, seja para guiar a recuperação. Em sentido estrito, refere-se ao sistema proposto por \citet{edge2024} na Microsoft Research, doravante Microsoft GraphRAG, que extrai o grafo do corpus por meio de um LLM, organiza-o em comunidades hierárquicas e as resume, com o objetivo de responder a consultas de sentido global sobre coleções de documentos, para as quais o RAG vetorial convencional é inadequado. No restante deste capítulo, GraphRAG refere-se a essa implementação.
 

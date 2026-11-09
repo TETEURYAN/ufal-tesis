@@ -1,0 +1,25 @@
+TY  - JOUR
+TI  - Matching patients to clinical trials with large language models
+AU  - Jin, Qiao
+AU  - Wang, Zifeng
+AU  - Floudas, Charalampos S.
+AU  - Chen, Fangyuan
+AU  - Gong, Changlin
+AU  - Bracken-Clarke, Dara
+AU  - Xue, Elisabetta
+AU  - Yang, Yifan
+AU  - Sun, Jimeng
+AU  - Lu, Zhiyong
+T2  - Nature Communications
+PY  - 2024
+DA  - 2024/11/18
+VL  - 15
+IS  - 1
+SP  - 9074
+DO  - 10.1038/s41467-024-53081-z
+UR  - https://doi.org/10.1038/s41467-024-53081-z
+AB  - Patient recruitment is challenging for clinical trials. We introduce TrialGPT, an end-to-end framework for zero-shot patient-to-trial matching with large language models. TrialGPT comprises three modules: it first performs large-scale filtering to retrieve candidate trials (TrialGPT-Retrieval); then predicts criterion-level patient eligibility (TrialGPT-Matching); and finally generates trial-level scores (TrialGPT-Ranking). We evaluate TrialGPT on three cohorts of 183 synthetic patients with over 75,000 trial annotations. TrialGPT-Retrieval can recall over 90% of relevant trials using less than 6% of the initial collection. Manual evaluations on 1015 patient-criterion pairs show that TrialGPT-Matching achieves an accuracy of 87.3% with faithful explanations, close to the expert performance. The TrialGPT-Ranking scores are highly correlated with human judgments and outperform the best-competing models by 43.8% in ranking and excluding trials. Furthermore, our user study reveals that TrialGPT can reduce the screening time by 42.6% in patient recruitment. Overall, these results have demonstrated promising opportunities for patient-to-trial matching with TrialGPT.
+N1  - Citado na Seção 4.1.2: LLM como pré-triagem antes da revisão humana; redução de 42,6% no tempo de triagem de pacientes.
+ID  - jin2024
+LA  - en
+ER  - 

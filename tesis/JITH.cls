@@ -51,6 +51,9 @@
 \def\filiationC#1{\gdef\@filiationC{#1}}
 \def\filiationD#1{\gdef\@filiationD{#1}}
 \def\filiationE#1{\gdef\@filiationE{#1}}
+% valores padrão vazios (campos opcionais testados na folha de rosto e na de aprovação)
+\def\@memberA{}\def\@memberB{}\def\@memberC{}\def\@memberD{}\def\@memberE{}
+\def\@filiationD{}\def\@filiationE{}\def\@coorientador{}\def\@tituloCoorientador{}
 %
 \def\setDate#1{\gdef\@setDate{#1}}
 \def\setMonth#1{\gdef\@setMonth{#1}}
@@ -58,6 +61,8 @@
 \def\setLocation#1{\gdef\@setLocation{#1}}
 
 \newcommand{\myifnotempty}[2]{\ifthenelse{\not\equal{#1}{}}{#2}{}}
+% data por extenso; sem dia (\setDate{}), imprime só mês e ano
+\newcommand{\@dataExtenso}{\ifthenelse{\equal{\@setDate}{}}{\@setMonth~de~\@setYear}{\@setDate~de~\@setMonth~de~\@setYear}}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \def\capa{%
@@ -108,7 +113,7 @@
 				\renewcommand{\baselinestretch}{1}\raggedleft\large\@university\\
 				\@department\\
 				\@setLocation\\
-				\@setDate~de~\@setMonth~de~\@setYear
+				\@dataExtenso
 			\end{minipage}}\fcolorbox{icbackcolor}{icbackcolor}{\begin{minipage}[r][2.5cm]{8mm}   \hspace{8mm}\end{minipage}}\hspace{-2cm}
 	
 	\thispagestyle{empty}
@@ -139,7 +144,7 @@
 	 \ifthenelse{\@docType=4}{Qualificação de Doutorado submetida}{
 	 \ifthenelse{\@docType=4}{Tese de Doutorado submetida}{
 	 E R R O R}}}}}}
-	apresentado ao {\@department} da {\@university} como requisito parcial para a obtenção do grau de   {\ifthenelse{\@docType=1}{Bacharel em Engenharia de Computação}{
+	apresentado ao {\@department} da {\@university} como requisito parcial para a obtenção do grau de   {\ifthenelse{\@docType=1}{Bacharel em \mbox{Ciência} da Computação}{
 	 \ifthenelse{\@docType=2}{Mestre em Informática}{
 	 \ifthenelse{\@docType=3}{Mestre em Informática}{
 	 \ifthenelse{\@docType=4}{Doutor em Informática}{
@@ -157,7 +162,8 @@
 
 \vspace{1cm}
 
-\textbf{Banca Examinadora:}
+\myifnotempty{\@memberA\@memberB\@memberC\@memberD\@memberE}{%
+\textbf{Banca Avaliadora:}
 
 \vspace{5mm}
 \begin{tabular}{lr}
@@ -166,12 +172,12 @@
 \myifnotempty{\@memberC}{\@memberC&\@filiationC\\}
 \myifnotempty{\@memberD}{\@memberD&\@filiationD\\}
 \myifnotempty{\@memberE}{\@memberE&\@filiationE}
-\end{tabular}
+\end{tabular}}
 \vfill
 
 {\large\@setLocation}
 
-{\large \@setDate~de~\@setMonth~de~\@setYear }
+{\large \@dataExtenso}
 
 \end{center}
 	
@@ -202,7 +208,7 @@
 	 \ifthenelse{\@docType=4}{Qualificação de Doutorado submetida}{
 	 \ifthenelse{\@docType=4}{Tese de Doutorado submetida}{
 	 E R R O R}}}}}}
-	apresentado ao {\@department} da {\@university} como requisito parcial para a obtenção do grau de   {\ifthenelse{\@docType=1}{Bacharel em Engenharia de Computação}{
+	apresentado ao {\@department} da {\@university} como requisito parcial para a obtenção do grau de   {\ifthenelse{\@docType=1}{Bacharel em \mbox{Ciência} da Computação}{
 	 \ifthenelse{\@docType=2}{Mestre em Informática}{
 	 \ifthenelse{\@docType=3}{Mestre em Informática}{
 	 \ifthenelse{\@docType=4}{Doutor em Informática}{
@@ -212,7 +218,7 @@
 	\vspace*{\fill}
 	
 	
-	Aprovado em \@setDate~\@setMonth,~\@setYear:
+	Aprovado em \@dataExtenso:
 	
 	\vspace{7mm}\vfill
 	

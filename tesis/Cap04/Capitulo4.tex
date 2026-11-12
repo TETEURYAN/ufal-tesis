@@ -7,7 +7,7 @@ O capítulo organiza-se em quatro etapas, que correspondem aos painéis da Figur
 \begin{figure}[!htbp]
 \centering
 \resizebox{\textwidth}{!}{\input{Cap04/figuras/arquitetura_sistema.tex}}
-\caption[Arquitetura do sistema avaliado]{Arquitetura do sistema avaliado, em quatro etapas: construção da amostra, construção do grafo, consulta pelos sistemas S1 a S8 (S5 e S6 esmaecidos, não concluídos) e avaliação.}
+\caption[Metodologia do sistema avaliado]{Metodologia do sistema avaliado, em quatro etapas: construção da amostra, construção do grafo, consulta pelos sistemas S1 a S8 (S5 e S6 esmaecidos, não concluídos) e avaliação.}
 \label{fig:met-visao-geral}
 \par\smallskip{\footnotesize Fonte: elaborado pelo autor.}
 \end{figure}
@@ -23,7 +23,7 @@ A anonimização foi executada localmente, sem que nenhum dado identificável de
 
 \subsection{Classes-Alvo}\label{sec:met-classes}
 
-As oito classes avaliadas são cirrose hepática, esquistossomose, hepatite B, hepatite C, esteatose hepática, hipertensão portal, hemorragia digestiva alta (HDA) e peritonite bacteriana espontânea (PBE). Essas condições não foram selecionadas por critério estatístico nem descobertas de forma exploratória no texto: foram definidas \textit{a priori} por uma profissional de hepatologia, com base em sua relevância clínica no contexto do ambulatório de origem dos dados.
+As oito classes avaliadas são cirrose hepática, esquistossomose, hepatite B, hepatite C, esteatose hepática, hipertensão portal, hemorragia digestiva alta (HDA) e peritonite bacteriana espontânea (PBE). Essas condições não foram selecionadas por critério estatístico nem descobertas de forma exploratória no texto: foram definidas \textit{a priori} foram definidas a priori por uma médica com experiência especializada em hepatologia, considerando sua expertise clínica e a relevância dos critérios no contexto do ambulatório de origem dos dados.
 
 \label{sec:estrutura-causal}As oito condições não são independentes entre si, e sua estrutura causal condiciona a formulação da tarefa. A esteatose hepática, a hepatite B e a hepatite C são causas frequentes de dano hepático crônico que pode evoluir para cirrose. A cirrose e a esquistossomose hepatoesplênica são causas de hipertensão portal, respectivamente nas formas cirrótica e não cirrótica. A hemorragia digestiva alta e a peritonite bacteriana espontânea são descompensações da doença hepática de base, associadas à hipertensão portal e à cirrose avançada. Um mesmo paciente pode, portanto, apresentar várias dessas condições encadeadas, o que motiva a formulação da tarefa como classificação multirrótulo: a cada prontuário associa-se o subconjunto das oito condições documentadas como presentes, em vez de uma única categoria. Ainda assim, a estrutura causal exige cuidado na distinção entre doença de base e complicação, de modo que a fronteira entre classes permanece um ponto sensível da avaliação, discutido na definição do critério de presença clara na Seção~\ref{sec:met-prompt}.
 
@@ -31,7 +31,7 @@ A lista fixa de classes é o ponto de partida de todo o pipeline. Tanto a triage
 
 \subsection{Construção da Amostra e dos Rótulos de Referência}\label{sec:met-amostra}
 
-Os experimentos foram conduzidos sobre um conjunto de 537 prontuários extraído do corpus de 3.757. Esse conjunto não constitui amostra aleatória: foi construído por um funil de três etapas, representado no painel 1 da Figura~\ref{fig:met-visao-geral}. A escolha decorre do fato de que uma amostra aleatória simples teria prevalência baixa demais de cada uma das oito doenças, com número de casos positivos por classe insuficiente para uma avaliação multirrótulo. O funil contorna esse problema ao enriquecer a amostra com prontuários que plausivelmente mencionam as condições de interesse.
+Os experimentos foram conduzidos sobre um conjunto de 537 prontuários extraído do corpus de 3.757. Esse conjunto não constitui amostra aleatória: foi construído por um funil de três etapas, representado no painel 1 da Figura~\ref{fig:met-visao-geral}. A escolha decorre do fato de que uma amostra aleatória simples teria prevalência baixa demais de cada uma das oito doenças, com número de casos positivos por classe insuficiente para uma avaliação multirrótulo.O funil contorna esse problema ao priorizar prontuários com indícios textuais de menção às condições clínicas de interesse.
 
 A primeira etapa consistiu em uma triagem por expressões regulares sobre o texto bruto de todo o corpus, em busca de menções às oito doenças-alvo. Abordagens baseadas em regras como essa são usuais na identificação de casos a partir do texto livre de prontuários: em revisão sistemática sobre o tema, \citet{ford2016} não encontraram diferença clara de acurácia entre métodos baseados em regras e métodos de aprendizado de máquina. Um teste manual preliminar mostrou que uma busca ingênua pelos termos produzia falsos positivos sistemáticos, o que motivou quatro correções, cujos marcadores completos constam do Apêndice~\ref{ap:dicionarios}:
 \begin{enumerate}

@@ -92,7 +92,7 @@ O cuidado com essa etapa tem respaldo na literatura. \citet{ye2026} relatam que 
 
 \subsection{Indexação e Hierarquia de Comunidades}\label{sec:met-hierarquia}
 
-A indexação propriamente dita compreendeu quatro etapas. Na segmentação (\textit{chunking}), o corpus foi dividido em 5.541 unidades de texto (\textit{text units}), unidade mínima à qual se vinculam tanto as entidades extraídas quanto os documentos de origem. Na extração de entidades e relações, um LLM leu cada unidade de texto e identificou entidades, como diagnósticos, exames, medicamentos, procedimentos e sinais clínicos, bem como as relações entre elas, o que resultou em um grafo com 26.966 entidades e 88.347 relações.
+A indexação propriamente dita compreendeu quatro etapas. Na segmentação (\textit{chunking}), o corpus foi dividido em 5.541 unidades de texto (\textit{text units}), unidade mínima à qual se vinculam tanto as entidades extraídas quanto os documentos de origem. Na extração de entidades e relações, um LLM, espeficicamente o \texttt{gpt-oss-120b} da qual será posteriormente explicado a escolha, leu cada unidade de texto e identificou entidades, como diagnósticos, exames, medicamentos, procedimentos e sinais clínicos, bem como as relações entre elas, o que resultou em um grafo com 26.966 entidades e 88.347 relações.
 
 A detecção de comunidades empregou a implementação hierárquica do algoritmo de Leiden \citep{traag2019} disponível na biblioteca graspologic, que particiona o grafo em grupos de nós densamente interconectados, maximizando a modularidade. O caráter recursivo do algoritmo, discutido na Seção~\ref{sec:graphrag}, faz com que as comunidades de um nível sejam subdivididas no nível seguinte, o que gerou uma hierarquia de 7 níveis, numerados de 0, o mais amplo, a 6, o mais granular. Cabe registrar que essa partição é puramente topológica: depende apenas de quais entidades estão conectadas e com que peso, sem nenhuma etapa semântica no agrupamento em si.
 
@@ -219,10 +219,3 @@ Como apoio à investigação qualitativa dos erros, foram gerados subgrafos de e
 Essas visualizações serviram para ilustrar mecanismos de erro específicos, como o de uma entidade sinônima de uma doença alocada em comunidade diferente daquela que contém a entidade correspondente ao nome canônico, no mesmo paciente, situação compatível com o caráter puramente topológico do agrupamento descrito na Seção~\ref{sec:met-grafo}.
 
 O procedimento foi depois generalizado para todos os 537 prontuários, com uma imagem por paciente, e complementado por uma comparação visual dos seis maiores subgrafos da amostra e por uma análise estrutural agregada da distribuição de entidades, relações e comunidades por prontuário.
-
-% =====================================================================
-% TODO: PENDÊNCIAS DESTE CAPÍTULO
-% 1. Parecer do CEP/CAAE (Seção 4.1).
-% 2. Indexação (Seção 4.2): LLM e modelo de embeddings usados, tamanho e sobreposição
-%    das unidades de texto (graphrag_config/settings.yaml não é o arquivo usado).
-% =====================================================================

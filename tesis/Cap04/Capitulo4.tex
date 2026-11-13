@@ -178,7 +178,7 @@ A execução local exigiu ajustes na estratégia de paralelização das consulta
 
 \section{Avaliação}\label{sec:met-avaliacao}
 
-A resposta de cada consulta foi convertida em um conjunto de doenças previstas e comparada aos rótulos de referência, etapa representada no painel 4 da Figura~\ref{fig:met-visao-geral}. Esta seção descreve a extração da resposta, as métricas de classificação e a análise qualitativa de erros e do grafo.
+A resposta de cada consulta foi convertida em um conjunto de doenças previstas e comparada aos rótulos de referência, etapa representada no painel 4 da Figura~\ref{fig:met-visao-geral}. Esta seção descreve a extração da resposta, as métricas de classificação, as hipóteses formuladas sobre o modo \textit{drift} e a análise qualitativa de erros e do grafo.
 
 \subsection{Extração da Resposta}\label{sec:met-parser}
 
@@ -213,6 +213,28 @@ A acurácia por rótulo, definida na Equação~\eqref{eq:ar}, considera cada com
 \mathrm{AR} = \frac{1}{N\,|C|}\sum_{i=1}^{N}\sum_{c \in C} \mathbf{1}\left[\hat{y}_{ic} = y_{ic}\right]
 \label{eq:ar}
 \end{equation}
+\subsection{Hipóteses sobre o Modo \texorpdfstring{\textit{Drift}}{Drift}}\label{sec:met-hipoteses}
+
+A comparação entre os sistemas revelou um padrão sistemático no comportamento do modo \textit{drift}, relatado no Capítulo~\ref{cap:resultados}, que motivou duas investigações dedicadas ao mecanismo subjacente. Trata-se de análises conduzidas \textit{a posteriori}, sobre pares formados por prontuário e doença, cujo desenho se descreve aqui. Em ambas, considera-se que o \textit{drift} acerta, ou erra, quando ao menos um dos sistemas S7 e S8 o faz, e que a maioria dos demais acerta, ou erra, quando mais da metade dos sistemas S1 a S4 o faz.
+
+A primeira investigação examina por que o \textit{drift} acerta onde os demais erram. O grupo A reúne os pares com doença presente nos rótulos de referência em que o \textit{drift} a identifica e a maioria dos sistemas \textit{basic} e \textit{local} não a identifica; o grupo B reúne os demais pares com doença presente e funciona como controle. Foram formuladas quatro hipóteses:
+\begin{description}
+    \item[H1:] os prontuários do grupo A são mais longos, em número de caracteres, que os do grupo B;
+    \item[H2:] o termo literal da doença aparece em menor proporção no texto dos prontuários do grupo A, indicando evidência mais indireta;
+    \item[H3:] os prontuários do grupo A registram mais atendimentos, de modo que a informação relevante fica mais diluída no histórico;
+    \item[H4:] a entidade canônica da doença deixou de ser extraída na indexação, para o paciente correspondente, em maior proporção no grupo A.
+\end{description}
+
+A segunda investigação examina o caso inverso: por que o \textit{drift} erra onde os demais acertam. O grupo A reúne os pares com doença ausente nos rótulos de referência em que o \textit{drift} prediz presença (falso positivo) e a maioria dos sistemas \textit{basic} e \textit{local} acerta a ausência; o grupo B reúne os pares com doença ausente em que o \textit{drift} também acerta. Foram formuladas outras quatro hipóteses:
+\begin{description}
+    \item[H1:] nos falsos positivos do grupo A, o \textit{drift} justifica a doença com linguagem de risco ou de hipótese, como ``risco'', ``possível'' e ``sugestivo'', e não com um achado confirmado;
+    \item[H2:] os prontuários do grupo A são mais longos, em número de caracteres, que os do grupo B;
+    \item[H3:] nos falsos positivos de HDA, termos de sangramento digestivo baixo, como ``hemorroida'', ``fissura anal'' e ``hematoquezia'', aparecem em maior proporção que no grupo B;
+    \item[H4:] o trecho que o \textit{drift} cita como evidência da doença não aparece literalmente no texto do próprio paciente, indício de alucinação ou de contaminação por informação de outros prontuários.
+\end{description}
+
+A escolha dos testes segue a natureza de cada variável. Comprimento do texto e número de atendimentos são variáveis quantitativas sem pressuposto de normalidade, comparadas entre os grupos pelo teste U de Mann-Whitney \citep{mann_whitney1947}, não paramétrico; a presença do termo literal, a ausência da entidade canônica e a presença de termos de sangramento baixo são variáveis binárias, comparadas pelo teste qui-quadrado de Pearson \citep{pearson1900}. Os testes foram implementados com a biblioteca SciPy, com nível de significância de 5\%. As hipóteses H1 e H4 da segunda investigação não têm grupo de comparação, pois no grupo B o \textit{drift} não menciona a doença; foram avaliadas pela proporção de casos do grupo A que apresentam o padrão, considerando-se relevante uma proporção superior a 15\%. A hipótese H4 da primeira investigação originou-se da análise do subgrafo de um paciente específico, descrita na seção seguinte, e foi submetida ao teste para verificar se o mecanismo observado nesse caso se generaliza para a amostra.
+
 \subsection{Análise Qualitativa de Erros e do Grafo}\label{sec:met-qualitativa}
 
 Como apoio à investigação qualitativa dos erros, foram gerados subgrafos de entidades e relações por paciente, desenhados com as bibliotecas NetworkX e matplotlib em leiaute de força dirigida e coloridos por comunidade.

@@ -233,8 +233,6 @@ A segunda investigação examina o caso inverso: por que o \textit{drift} erra o
     \item[H4:] o trecho que o \textit{drift} cita como evidência da doença não aparece literalmente no texto do próprio paciente, indício de alucinação ou de contaminação por informação de outros prontuários.
 \end{description}
 
-A escolha dos testes segue a natureza de cada variável. Comprimento do texto e número de atendimentos são variáveis quantitativas sem pressuposto de normalidade, comparadas entre os grupos pelo teste U de Mann-Whitney \citep{mann_whitney1947}, não paramétrico; a presença do termo literal, a ausência da entidade canônica e a presença de termos de sangramento baixo são variáveis binárias, comparadas pelo teste qui-quadrado de Pearson \citep{pearson1900}. Os testes foram implementados com a biblioteca SciPy, com nível de significância de 5\%. As hipóteses H1 e H4 da segunda investigação não têm grupo de comparação, pois no grupo B o \textit{drift} não menciona a doença; foram avaliadas pela proporção de casos do grupo A que apresentam o padrão, considerando-se relevante uma proporção superior a 15\%. A hipótese H4 da primeira investigação originou-se da análise do subgrafo de um paciente específico, descrita na seção seguinte, e foi submetida ao teste para verificar se o mecanismo observado nesse caso se generaliza para a amostra.
-
 \subsection{Análise Qualitativa de Erros e do Grafo}\label{sec:met-qualitativa}
 
 Como apoio à investigação qualitativa dos erros, foram gerados subgrafos de entidades e relações por paciente, desenhados com as bibliotecas NetworkX e matplotlib em leiaute de força dirigida e coloridos por comunidade.

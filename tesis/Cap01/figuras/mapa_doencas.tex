@@ -1,0 +1,44 @@
+% Mapa das oito doenças-alvo e das relações causais entre elas (Seção 4.1.1),
+% com o número de pacientes de cada classe na amostra (Tabela 4.1).
+\begin{tikzpicture}[
+  font=\sffamily\small,
+  doenca/.style={draw, line width=0.7pt, rounded corners=3pt, align=center, text width=3.0cm, minimum height=12mm, inner sep=3pt},
+  causa/.style={doenca, draw=vAmbar!80!black, fill=vAmbar!16},
+  base/.style={doenca, draw=vAzul!80!black, fill=vAzul!13},
+  central/.style={doenca, draw=vRoxo!80!black, fill=vRoxo!12},
+  descomp/.style={doenca, text width=3.5cm, draw=vVermelho!80!black, fill=vVermelho!12},
+  seta/.style={-{Latex[length=2.2mm]}, line width=0.8pt, black!55},
+  rot/.style={font=\sffamily\scriptsize, text=black!65, fill=white, inner sep=1.5pt},
+  cab/.style={font=\sffamily\footnotesize\bfseries, align=center, text width=3.3cm},
+  n/.style={font=\sffamily\scriptsize, text=black!65}
+]
+% cabeçalhos das colunas
+\node[cab, text=vAmbar!85!black]    at (0,3.75)    {Causas de dano\\hepático crônico};
+\node[cab, text=vAzul!85!black]     at (4.4,3.75)  {Doenças de base};
+\node[cab, text=vRoxo!85!black]     at (8.8,3.75)  {Complicação central};
+\node[cab, text=vVermelho!85!black] at (13.45,3.75) {Descompensações};
+
+% doenças (n = pacientes na amostra de 537 prontuários)
+\node[causa] (est)  at (0,2.3)  {\textbf{Esteatose hepática}\\[-1pt]{\scriptsize\color{black!65}156 pacientes}};
+\node[causa] (hb)   at (0,0.6)  {\textbf{Hepatite B}\\[-1pt]{\scriptsize\color{black!65}90 pacientes}};
+\node[causa] (hc)   at (0,-1.1) {\textbf{Hepatite C}\\[-1pt]{\scriptsize\color{black!65}67 pacientes}};
+\node[base]  (cir)  at (4.4,0.6)  {\textbf{Cirrose hepática}\\[-1pt]{\scriptsize\color{black!65}152 pacientes}};
+\node[base]  (esq)  at (4.4,-2.6) {\textbf{Esquistossomose}\\[-1pt]{\scriptsize\color{black!65}95 pacientes}};
+\node[central] (hp) at (8.8,-1.0) {\textbf{Hipertensão portal}\\[-1pt]{\scriptsize\color{black!65}201 pacientes}};
+\node[descomp] (hda) at (13.45,0.6)  {\textbf{Hemorragia digestiva\\alta (HDA)}\\[-1pt]{\scriptsize\color{black!65}36 pacientes}};
+\node[descomp] (pbe) at (13.45,-2.6) {\textbf{Peritonite bacteriana\\espontânea (PBE)}\\[-1pt]{\scriptsize\color{black!65}2 pacientes}};
+
+% relações causais
+\draw[seta] (est.east) -- (cir.west);
+\draw[seta] (hb.east)  -- (cir.west);
+\draw[seta] (hc.east)  -- (cir.west);
+\node[rot, anchor=south] at (2.2,1.75) {evolução};
+\draw[seta] (cir.east) -- (hp.west);
+\node[rot, anchor=south west] at (6.75,0.05) {forma cirrótica};
+\draw[seta] (esq.east) -- (hp.west);
+\node[rot, anchor=north west] at (6.75,-2.15) {forma não cirrótica};
+\draw[seta] (hp.east)  -- (hda.west);
+\node[rot, anchor=south east] at (11.25,0.15) {varizes};
+\draw[seta] (hp.east)  -- (pbe.west);
+\node[rot, anchor=north east] at (11.25,-2.15) {ascite};
+\end{tikzpicture}

@@ -79,3 +79,10 @@
     \edef\temp{\noexpand\cellcolor[rgb]{\r,\g,\b}}%
     \temp #1%
 }
+
+% Número do capítulo em fonte monoespaçada, apenas no cabeçalho de abertura do capítulo
+% (sumário, cabeçalhos de página e referências cruzadas continuam na fonte normal)
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\@makechapterhead}{\thechapter}{{\ttfamily\fontsize{34}{34}\selectfont\thechapter}}{}{\PackageWarning{estilo-visual}{patch do numero do capitulo falhou}}
+\makeatother

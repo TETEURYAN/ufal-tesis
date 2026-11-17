@@ -34,6 +34,9 @@
 \def\@university{Universidade Federal de Alagoas}
 \def\docTitle#1{\gdef\@docTitle{#1}}
 \def\author#1{\gdef\@author{#1}}
+% e-mail institucional do autor, impresso em fonte monoespaçada abaixo do nome na capa (vazio = omitido)
+\def\email#1{\gdef\@email{#1}}
+\gdef\@email{}
 \def\@department{Instituto de Computação}
 \def\docType#1{\gdef\@docType{#1}}
 \def\orientador#1{\gdef\@orientador{#1}}
@@ -94,7 +97,7 @@
     \vspace{1cm}
 
     \hspace{-1.0cm}\scalebox{1}{\begin{minipage}{1\textwidth}
-		\renewcommand{\baselinestretch}{1}\raggedright {\textbf{\large\@author}}
+		\renewcommand{\baselinestretch}{1}\raggedright {\textbf{\large\@author}}\myifnotempty{\@email}{\\[2pt]{\ttfamily\@email}}
 	\end{minipage}}
 
     \vspace{1cm}
@@ -138,7 +141,7 @@
 
 \hspace{.45\textwidth}
 \begin{minipage}{.5\textwidth}
-	{\ifthenelse{\@docType=1}{Trabalho de Conclusão de Curso}{
+	{\ifthenelse{\@docType=1}{Tede de Láurea}{
 	 \ifthenelse{\@docType=2}{Proposta de Dissertação de Mestrado submetida}{
 	 \ifthenelse{\@docType=3}{Dissertação de Mestrado submitida}{
 	 \ifthenelse{\@docType=4}{Qualificação de Doutorado submetida}{
@@ -202,7 +205,7 @@
 	
 	%\hspace{.45\textwidth}
 	\begin{minipage}{.8\textwidth}
-		{\ifthenelse{\@docType=1}{Trabalho de Conclusão de Curso}{
+		{\ifthenelse{\@docType=1}{Tese de Láurea}{
 	 \ifthenelse{\@docType=2}{Proposta de Dissertação de Mestrado submetida}{
 	 \ifthenelse{\@docType=3}{Dissertação de Mestrado submetida}{
 	 \ifthenelse{\@docType=4}{Qualificação de Doutorado submetida}{

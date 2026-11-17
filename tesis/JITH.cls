@@ -141,7 +141,7 @@
 
 \hspace{.45\textwidth}
 \begin{minipage}{.5\textwidth}
-	{\ifthenelse{\@docType=1}{Tede de Láurea}{
+	{\ifthenelse{\@docType=1}{Tese de Láurea}{
 	 \ifthenelse{\@docType=2}{Proposta de Dissertação de Mestrado submetida}{
 	 \ifthenelse{\@docType=3}{Dissertação de Mestrado submitida}{
 	 \ifthenelse{\@docType=4}{Qualificação de Doutorado submetida}{

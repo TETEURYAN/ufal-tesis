@@ -1,5 +1,9 @@
 \label{sec:sampleReferences}
 
+% o estilo myheadings não atualiza o cabeçalho no \chapter* da bibliografia; sem esta
+% marca, as páginas das referências herdavam a última seção ("Trabalhos Futuros")
+\markboth{\bibname}{\bibname}
+
 % \bibliography (natbib/BibTeX) já imprime a bibliografia neste ponto do documento --
 % \printbibliography é um comando do biblatex, pacote nunca carregado aqui (só natbib,
 % ver main.tex). Misturar os dois gerava "Undefined control sequence" no fim do
